@@ -1,0 +1,7 @@
+{
+  "name": "ionic-surveyjs",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular"
+}

@@ -1,0 +1,66 @@
+<!--
+  Generated template for the SurveyResultsPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+  <ion-navbar color="new">
+    <ion-title>Resultados de las Encuestas</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+	<ion-fab top right  *ngIf="surveyResults?.length > 0">
+    <button ion-fab mini color="danger"><ion-icon name="arrow-dropdown"></ion-icon></button>
+    <ion-fab-list>
+			<button ion-fab color="danger" (click)="openModal()"><ion-icon name="stats"></ion-icon></button>
+			<!-- <button ion-fab color="danger" (click)="presentAlert()"><ion-icon name="people"></ion-icon></button> -->
+      <!-- <button ion-fab color="danger" (click)="downloadResults()"><ion-icon name="cloud-download"></ion-icon></button> -->
+    </ion-fab-list>
+  </ion-fab>
+	<ion-grid *ngIf="surveyResults?.length > 0" fixed>
+		<ion-card>
+			<ion-card-header *ngIf="survey.AllowAccessResult">
+					<ion-icon name="logo-chrome" item-start></ion-icon>
+					URL pública resultados -> <a href="{{survey.publicSurveyURL}}" target="_blank">Acceder</a>
+				</ion-card-header>
+			<ion-card-header>
+				<ion-avatar item-start>
+					<img [src]="survey.Image">
+				</ion-avatar>
+				<ion-icon name="clipboard" item-start></ion-icon>
+				Leyenda
+			</ion-card-header>
+			<ion-card-content>
+				<p *ngFor="let key of keys; let i = index"><b>P{{i + 1}}</b> {{key}}</p>
+			</ion-card-content>
+		</ion-card>
+		<ion-row>
+			<ion-col col-1></ion-col>
+			<ion-col col-2 *ngFor="let key of keys; let i = index">
+					<b>P{{i + 1}}</b>
+			</ion-col>
+		</ion-row>
+		<ion-row *ngFor="let result of surveyResults">
+			<ion-col col-1><ion-icon name="trash" (click)="onClickDeleteSurveyResult(result)"></ion-icon></ion-col>
+			<ion-col col-2 *ngFor="let userAnswer of result.userAnswers">
+					{{userAnswer.value}}
+			</ion-col>
+			<ion-col col-2>{{result.happendAt | date: 'dd/MM/yyyy H:mm'}}</ion-col>
+			<!--<ion-col col-2>{{survey.IPAddress}}</ion-col>-->
+		</ion-row>
+	</ion-grid>
+</ion-content>
+
+<ion-footer>
+    <ion-toolbar color="new">
+				<ion-title>© {{ currentYear }} URL Survey</ion-title>
+        <ion-buttons end>
+						
+				</ion-buttons>
+    </ion-toolbar>
+</ion-footer>

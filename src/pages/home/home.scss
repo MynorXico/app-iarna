@@ -1,0 +1,38 @@
+page-home {
+  h2 {
+    color: black;
+  }
+
+  h4 {
+    display: flex;
+    color: #ccc;
+    width: 100%;
+    margin-top: .2em!important;
+  }
+  h4::before,
+  h4::after {
+    content: "";
+    flex:1;
+    align-self: center;
+    border-bottom: 1px solid #ccc;
+  }
+  h4::before {margin-right: .3em}
+  h4::after {margin-left: .3em}
+
+  .error-message {
+    background-color: map-get($colors, danger);
+    color: #fff;
+    border: 1px solid #c0392b;
+    padding: 10px;
+  }
+
+  a, ion-buttons {
+    color: white;
+  }
+
+  .github-button {
+    width: 49px;
+    height: 20px;
+    display: inline;
+  }
+}

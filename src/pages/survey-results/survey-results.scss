@@ -1,0 +1,30 @@
+page-survey-results {
+
+    ion-col {
+        font-size: 10px;
+    }
+
+    .scroll-content {
+        background-color: map-get($colors, light);
+    }
+
+    ion-card-header {
+        font-weight: bold;
+    }
+
+    .label {
+        color: black;
+    }
+
+    ion-avatar {
+        width: 200px;
+        height: 200px;
+        margin: auto;
+    }
+
+    .github-button {
+        width: 49px;
+        height: 20px;
+        display: inline;
+    }
+}
