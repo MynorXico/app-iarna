@@ -22,6 +22,8 @@ export class HomePage {
     defaultImages: any;
     noSurveys: boolean = false;
     currentYear = new Date().getFullYear();
+    textoModo: string;
+    modo: boolean;
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
                 public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper) {
@@ -29,7 +31,8 @@ export class HomePage {
         //this.getArchiveSurveys();
         this.getSurveys();
                 
-
+        this.textoModo='Offline';
+        this.modo = false;
         // TO TEST API WRAPPER UNCOMMENT THIS CODE. 
         /*
         this.apiWrapper.api.surveys.get('getActive', { accessKey: true, ownerId: true }).subscribe(
@@ -42,6 +45,11 @@ export class HomePage {
         );
         */
  
+    }
+
+
+    cambioModo() {
+        this.textoModo = this.modo?'Online':'Offline';
     }
 
     getSurveys() {
