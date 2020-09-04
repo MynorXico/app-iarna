@@ -18,6 +18,8 @@ import { ChartComponent } from '../components/chart/chart';
 import { ChartsModalPage } from '../modals/charts-modal';
 
 import { TimingInterceptor } from '../interceptors/timing-interceptor';
+import { SQLite } from '@ionic-native/sqlite';
+import { Database } from '../db/database';
 
 @NgModule({
     declarations: [
@@ -44,6 +46,8 @@ import { TimingInterceptor } from '../interceptors/timing-interceptor';
     ],
     providers: [
         StatusBar,
+        SQLite,
+        Database,
         SplashScreen,
         {provide: ErrorHandler, useClass: IonicErrorHandler},
         {provide: HTTP_INTERCEPTORS, useClass: TimingInterceptor, multi: true},

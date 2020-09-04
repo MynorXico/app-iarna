@@ -3,6 +3,23 @@ page-home {
     color: black;
   }
 
+  .contenedor-encabezado{
+    float: right;
+    
+  }
+
+  .encabezado{
+    width: 200px; 
+    display: flex;
+    flex-direction: row; 
+  }
+
+  .encabezado-font{
+    color:black; 
+    text-align: right;
+    
+  }
+
   h4 {
     display: flex;
     color: #ccc;

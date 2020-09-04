@@ -9,6 +9,8 @@ import { SurveyModel } from "../../models/survey.model";
 import { ApiWrapper } from '../../providers/survey/api-wrapper';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
+import { Database } from '../../db/database';
+import { Peticion } from '../../models/peticion.model';
 
 
 @Component({
@@ -24,9 +26,11 @@ export class HomePage {
     currentYear = new Date().getFullYear();
     textoModo: string;
     modo: boolean;
+    peticiones: Peticion[]
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
-                public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper) {
+                public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper,
+                private db: Database) {
         //this.getActiveSurveys();
         //this.getArchiveSurveys();
         this.getSurveys();
@@ -50,6 +54,31 @@ export class HomePage {
 
     cambioModo() {
         this.textoModo = this.modo?'Online':'Offline';
+    }
+
+    /*
+        Este metodo obtiene data para pruebas
+    */
+    ejemploObtenerData(){
+        this.peticiones = []
+        this.db.getRows().then((res) => {
+            if (res.rows.length > 0) {
+                for (var i = 0; i < res.rows.length; i++) {
+                    this.peticiones.push({
+                        id: res.rows.item(i).id,
+                        estado: res.rows.item(i).estado,
+                        path: res.rows.item(i).path
+                    });
+                }
+            }
+
+            this.peticiones.forEach(item => {
+                alert(item.path)
+            })
+        })
+        .catch(e => {
+            alert("error " + JSON.stringify(e))
+        });
     }
 
     getSurveys() {

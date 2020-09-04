@@ -6,25 +6,27 @@
     </ion-navbar>
 </ion-header>
 <ion-content padding>
-    <div style="display: flex;">
-        <ion-fab >
-            <button ion-fab mini color="danger"><ion-icon name="arrow-dropdown"></ion-icon></button>
-            <ion-fab-list>
-                <!-- <button ion-fab mini color="danger" (click)="presentAlert({operation: 'create'})"><ion-icon name="add"></ion-icon></button> -->
-                <!-- <button ion-fab mini color="danger" ><ion-icon name="add"><ion-icon name="build"></ion-icon></button> -->
-                
-                <button ion-fab mini color="danger" (click)="showPrompt()"><ion-icon name="build"></ion-icon></button>
-                <button ion-fab mini color="danger" (click)="showPrompt1()"><ion-icon name="people"></ion-icon></button>
+    <ion-fab >
+        <button ion-fab mini color="danger"><ion-icon name="arrow-dropdown"></ion-icon></button>
+        <ion-fab-list>
+            <!-- <button ion-fab mini color="danger" (click)="presentAlert({operation: 'create'})"><ion-icon name="add"></ion-icon></button> -->
+            <!-- <button ion-fab mini color="danger" ><ion-icon name="add"><ion-icon name="build"></ion-icon></button> -->
+            
+            <button ion-fab mini color="danger" (click)="showPrompt()"><ion-icon name="build"></ion-icon></button>
+            <button ion-fab mini color="danger" (click)="showPrompt1()"><ion-icon name="people"></ion-icon></button>
+    
+        </ion-fab-list>
+    </ion-fab>
+    <div class="contenedor-encabezado">
+        <div class="encabezado" top left>
+            <button *ngIf="modo" ion-button color="danger"><ion-icon  name="cloud-upload"></ion-icon></button>
+            <ion-item>
+                <ion-label class="encabezado-font">{{ textoModo }}</ion-label>
+                <ion-toggle (ionChange)="cambioModo()" [(ngModel)]="modo"></ion-toggle>
+            </ion-item>
+        </div>
         
-            </ion-fab-list>
-        </ion-fab>
-
-
-        <ion-item top left>
-        <ion-label style="color:black; text-align: right;">{{ textoModo }}</ion-label>
-        <ion-toggle (ionChange)="cambioModo()" [(ngModel)]="modo"></ion-toggle>
-
-    </ion-item></div>
+    </div>
 
         
     
