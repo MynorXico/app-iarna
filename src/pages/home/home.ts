@@ -13,6 +13,8 @@ import { Database } from '../../db/database';
 import { Peticion } from '../../models/peticion.model';
 
 
+import  FileManager from '../../files/file_management';
+
 @Component({
     selector: 'page-home',
     templateUrl: 'home.html'
@@ -87,9 +89,17 @@ export class HomePage {
         });
         loading.present();
         Observable.forkJoin(this.surveyProvider.getActiveSurveys(), this.surveyProvider.getArchiveSurveys())
-            .subscribe(data => {
+            .subscribe(async data => {
                 // console.log(data);
                 this.surveys = SurveyModel.fromJSONArray(data[0]);
+
+                // Guardar estas encuestas
+                console.log("Got surveys: ", this.surveys);
+                await FileManager.createDirectoryIfDoesntExist('Encuestas');
+                this.surveys.forEach((value, index)=> {
+                    let survey_id = value.Id;
+                    FileManager.writeFile(survey_id, JSON.stringify(value), 'Encuestas');
+                })
                 // console.log(this.surveys);
                 //this.archiveSurveys = SurveyModel.fromJSONArray(data[1]);
                 loading.dismiss();

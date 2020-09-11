@@ -2,6 +2,10 @@ import { Component, Input } from '@angular/core';
 
 import * as Survey from 'survey-angular';
 
+import  FileManager from '../../files/file_management';
+
+
+
 /**
  * Generated class for the SurveyComponent component.
  *
@@ -28,7 +32,7 @@ export class SurveyComponent {
 
         // Progress Bar.
         surveyModel.showProgressBar = 'bottom';
-
+        FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
         surveyModel.onComplete.add(this.sendDataToServer.bind(this));
         Survey.SurveyNG.render('surveyElement', { model: surveyModel });
 
@@ -40,10 +44,18 @@ export class SurveyComponent {
     ionViewDidLoad() {
     }
 
-    sendDataToServer(survey) {
+    async sendDataToServer(survey) {
         //console.log("sendDataToServer");
         //console.log("postId", this._survey.PostId);
         survey.sendResult(this._survey.PostId);
+        // Verificar si existe el directorio
+        const respuestas    = survey.valuesHash;
+        const id_encuesta   = survey.propertyHash.surveyId;
+        const id_encuesta_respondida = this._survey.PostId;
+        await FileManager.createDirectoryIfDoesntExist('Respuestas');
+        await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/')
+        await FileManager.writeFile(id_encuesta_respondida, JSON.stringify(respuestas), 'Respuestas/'+id_encuesta)
+        console.log("Sending data: ", survey.valuesHash)
     };
 
 
