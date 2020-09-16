@@ -64,6 +64,11 @@ export default class FileManager {
         return file_written;
     }
 
+    static async getQuestions(surveyId){
+        let current_content = await this.readFile('Encuestas', surveyId);
+        return current_content['questions'];
+    }
+
     /*
         Devuelve el contenido del archivo path/file
     */
@@ -101,6 +106,7 @@ export default class FileManager {
             ).catch(
                 err => {
                     alert("Error at creating " + dirName);
+                    console.log('Error (Directory Creation): ', err);
                     dir_created = false;
                 }
             );

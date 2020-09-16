@@ -14,6 +14,7 @@ import { Peticion } from '../../models/peticion.model';
 
 
 import  FileManager from '../../files/file_management';
+import * as Survey from 'survey-angular';
 
 @Component({
     selector: 'page-home',
@@ -100,7 +101,7 @@ export class HomePage {
                     let survey_id = value.Id;
                     FileManager.writeFile(survey_id, JSON.stringify(value), 'Encuestas');
                 })
-                // console.log(this.surveys);
+                //console.log(this.surveys);
                 //this.archiveSurveys = SurveyModel.fromJSONArray(data[1]);
                 loading.dismiss();
             },
@@ -109,6 +110,15 @@ export class HomePage {
                 if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) this.noSurveys = true;
                 loading.dismiss();
             });
+    }
+
+    downloadSurveys(surveys){
+        console.log(surveys);
+        surveys.forEach(survey => {
+            let surveyModel = new Survey.ReactSurveyModel({ surveyId: survey.Id });
+            console.log('SurveyModel', surveyModel);
+            //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+        });
     }
 
     getActiveSurveys() {
@@ -149,9 +159,10 @@ export class HomePage {
     // }
 
     selectedSurvey(survey) {
-        //console.log(survey);
+        console.log('Mode', this.modo);
         this.navCtrl.push(SurveyDetailsPage, {
-            survey: survey
+            survey: survey,
+            mode: this.modo
         });
     }
 

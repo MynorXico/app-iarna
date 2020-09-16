@@ -19,6 +19,7 @@
     </ion-fab>
     <div class="contenedor-encabezado">
         <div class="encabezado" top left>
+            <button *ngIf="modo" (click)="downloadSurveys(surveys)" ion-button color="danger"><ion-icon  name="cloud-download"></ion-icon></button>
             <button *ngIf="modo" ion-button color="danger"><ion-icon  name="cloud-upload"></ion-icon></button>
             <ion-item>
                 <ion-label class="encabezado-font">{{ textoModo }}</ion-label>

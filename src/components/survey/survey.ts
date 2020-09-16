@@ -19,23 +19,31 @@ import  FileManager from '../../files/file_management';
 export class SurveyComponent {
 
     _survey: any;
+    _mode: any;
 
-    @Input() set survey(survey) {
+    @Input() set survey(surveyAndMode) {
+        console.log('Survey',surveyAndMode);
         Survey.Survey.cssType = "bootstrap";
         Survey.defaultBootstrapCss.navigationButton = "btn btn-green";
 
-        this._survey = survey;
-        let surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
-
+        this._survey = surveyAndMode['survey'];
+        this._mode = surveyAndMode['mode'];
+        
+        let surveyModel
+        if(surveyAndMode['mode']){
+            surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
+        }else{
+            let surveyFromStorage = FileManager.getQuestions(this._survey.id);
+            surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
+        }
         // Change language.
         surveyModel.locale = "es";
-
         // Progress Bar.
         surveyModel.showProgressBar = 'bottom';
-        FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+
+        //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
         surveyModel.onComplete.add(this.sendDataToServer.bind(this));
         Survey.SurveyNG.render('surveyElement', { model: surveyModel });
-
     }
 
     constructor() {
@@ -47,7 +55,9 @@ export class SurveyComponent {
     async sendDataToServer(survey) {
         //console.log("sendDataToServer");
         //console.log("postId", this._survey.PostId);
-        survey.sendResult(this._survey.PostId);
+        if(this._mode){
+            survey.sendResult(this._survey.PostId);
+        }
         // Verificar si existe el directorio
         const respuestas    = survey.valuesHash;
         const id_encuesta   = survey.propertyHash.surveyId;

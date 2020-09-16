@@ -19,9 +19,15 @@ export class SurveyDetailsPage {
 
     currentYear = new Date().getFullYear();
     survey: any;
+    mode: any;
+    surveyAndMode: any;
 
     constructor(public navCtrl: NavController, public navParams: NavParams) {
         this.survey = this.navParams.get('survey');
+        this.mode = this.navParams.get('mode');
+        this.surveyAndMode = new Object();
+        this.surveyAndMode["survey"] = this.survey;
+        this.surveyAndMode["mode"] = this.mode;
     }
 
     ionViewDidLoad() {
