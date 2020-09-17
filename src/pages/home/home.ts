@@ -117,7 +117,7 @@ export class HomePage {
         surveys.forEach(survey => {
             let surveyModel = new Survey.ReactSurveyModel({ surveyId: survey.Id });
             console.log('SurveyModel', surveyModel);
-            //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+            FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
         });
     }
 

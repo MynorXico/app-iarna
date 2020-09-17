@@ -41,7 +41,7 @@ export class SurveyComponent {
         // Progress Bar.
         surveyModel.showProgressBar = 'bottom';
 
-        //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+        FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
         surveyModel.onComplete.add(this.sendDataToServer.bind(this));
         Survey.SurveyNG.render('surveyElement', { model: surveyModel });
     }
