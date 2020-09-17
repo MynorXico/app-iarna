@@ -33,17 +33,19 @@ export class SurveyComponent {
         if(surveyAndMode['mode']){
             surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
         }else{
-            let surveyFromStorage = FileManager.getQuestions(this._survey.id);
-            surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
-        }
-        // Change language.
-        surveyModel.locale = "es";
-        // Progress Bar.
-        surveyModel.showProgressBar = 'bottom';
+            FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
+                surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
+                // Change language.
+                surveyModel.locale = "es";
+                // Progress Bar.
+                surveyModel.showProgressBar = 'bottom';
 
-        FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
-        surveyModel.onComplete.add(this.sendDataToServer.bind(this));
-        Survey.SurveyNG.render('surveyElement', { model: surveyModel });
+                //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+                surveyModel.onComplete.add(this.sendDataToServer.bind(this));
+                Survey.SurveyNG.render('surveyElement', { model: surveyModel });
+            });
+        }
+        
     }
 
     constructor() {

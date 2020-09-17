@@ -117,7 +117,12 @@ export class HomePage {
         surveys.forEach(survey => {
             let surveyModel = new Survey.ReactSurveyModel({ surveyId: survey.Id });
             console.log('SurveyModel', surveyModel);
-            FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+            FileManager.writeFile(surveyModel['propertyHash']['surveyId'], '{}', 'Encuestas').then(res => {
+                FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+            }, err =>{
+                console.log('error esperando escritura')
+            })
+            
         });
     }
 

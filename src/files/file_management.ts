@@ -66,7 +66,7 @@ export default class FileManager {
 
     static async getQuestions(surveyId){
         let current_content = await this.readFile('Encuestas', surveyId);
-        return current_content['questions'];
+        return JSON.parse(current_content).questions;
     }
 
     /*
