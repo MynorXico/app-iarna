@@ -29,9 +29,8 @@ export default class FileManager {
     }
 
 
-    static async saveQuestions(filename, content, path =""){
+    static async saveQuestions(filename, current_questions, path =""){
         let current_content = await this.readFile(path, filename);
-        let current_questions = await content.getAllQuestions();
         let new_content = JSON.parse(current_content);
         new_content['questions'] = current_questions;
         this.writeFile(filename, JSON.stringify(new_content), path);
@@ -67,6 +66,53 @@ export default class FileManager {
     static async getQuestions(surveyId){
         let current_content = await this.readFile('Encuestas', surveyId);
         return JSON.parse(current_content).questions;
+    }
+
+    static async getSurveys(){
+        let surveys = new Array();
+        if(this.directoryExists('Encuestas')){
+            const file = new File();
+            try{
+                let files = await file.listDir(file.dataDirectory, 'Encuestas');
+                console.log(files);
+                for(const file of files){
+                    if(file.isFile){
+                        let survey = JSON.parse(await this.readFile('Encuestas', file.name));
+                        surveys.push(survey);
+                    }
+                };
+            }catch(err){
+                console.log(err);
+            }
+        }
+        return surveys;
+    }
+
+    static async getAnswers(){
+        let finalAnswers = new Array();
+        if(this.directoryExists('Respuestas')){
+            const file = new File();
+            try{
+                let surveys = await file.listDir(file.dataDirectory, 'Respuestas');
+                console.log('Survey', surveys);
+                for(const survey of surveys){
+                    if(survey.isDirectory){
+                        console.log(file.dataDirectory + 'Respuestas')
+                        let answers = await file.listDir(file.dataDirectory, 'Respuestas/' + survey.name);
+                        console.log('Answers', answers);
+                        for(const answer of answers){
+                            if(answer.isFile){
+                                let answerFromFile = JSON.parse(await this.readFile('Respuestas/' + survey.name, answer.name));
+                                finalAnswers.push(answerFromFile);
+                            }
+                        };
+                    }
+                };
+            }catch(err){
+                console.log(err);
+            }
+        }
+        return finalAnswers;
     }
 
     /*

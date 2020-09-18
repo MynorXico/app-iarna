@@ -11,10 +11,10 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
 import { Database } from '../../db/database';
 import { Peticion } from '../../models/peticion.model';
+import { HttpClient } from '@angular/common/http';
 
 
 import  FileManager from '../../files/file_management';
-import * as Survey from 'survey-angular';
 
 @Component({
     selector: 'page-home',
@@ -33,13 +33,13 @@ export class HomePage {
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
                 public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper,
-                private db: Database) {
+                private db: Database, private http: HttpClient) {
         //this.getActiveSurveys();
         //this.getArchiveSurveys();
+        this.modo = true;
+        this.cambioModo();
         this.getSurveys();
                 
-        this.textoModo='Offline';
-        this.modo = false;
         // TO TEST API WRAPPER UNCOMMENT THIS CODE. 
         /*
         this.apiWrapper.api.surveys.get('getActive', { accessKey: true, ownerId: true }).subscribe(
@@ -89,9 +89,10 @@ export class HomePage {
             content: "Cargando encuestas..."
         });
         loading.present();
-        Observable.forkJoin(this.surveyProvider.getActiveSurveys(), this.surveyProvider.getArchiveSurveys())
+        if(this.modo){
+            Observable.forkJoin(this.surveyProvider.getActiveSurveys(), this.surveyProvider.getArchiveSurveys())
             .subscribe(async data => {
-                // console.log(data);
+                console.log('SurveyData', data);
                 this.surveys = SurveyModel.fromJSONArray(data[0]);
 
                 // Guardar estas encuestas
@@ -110,19 +111,51 @@ export class HomePage {
                 if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) this.noSurveys = true;
                 loading.dismiss();
             });
+        }else{
+            FileManager.getSurveys().then((surveysFromFileSystem) => {
+                if(surveysFromFileSystem.length > 0){
+                    this.surveys = SurveyModel.fromJSONArray(surveysFromFileSystem);
+                }else{
+                    this.noSurveys = true;
+                }
+                loading.dismiss();
+            });
+        }
     }
 
     downloadSurveys(surveys){
+        let loading = this.loadingCtrl.create({
+            content: "Descargando encuestas..."
+        });
+        loading.present();
         console.log(surveys);
         surveys.forEach(survey => {
-            let surveyModel = new Survey.ReactSurveyModel({ surveyId: survey.Id });
-            console.log('SurveyModel', surveyModel);
-            FileManager.writeFile(surveyModel['propertyHash']['surveyId'], '{}', 'Encuestas').then(res => {
-                FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
-            }, err =>{
-                console.log('error esperando escritura')
-            })
-            
+            this.http.get('https://dxsurveyapi.azurewebsites.net/api/Survey/getSurvey?surveyId=' + survey.Id).subscribe((response) => {
+                console.log('Questions', JSON.stringify(response));
+                FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas');
+            });            
+        });
+        loading.dismiss();
+    }
+
+    uploadSurveys(){
+        let loading = this.loadingCtrl.create({
+            content: "Subiendo respuestas..."
+        });
+        loading.present();
+        FileManager.getAnswers().then((answersFromFileSystem) => {
+            if(answersFromFileSystem.length > 0){
+                answersFromFileSystem.forEach(answer => {
+                    let postData = {
+                        "postId": answer.postId,
+                        "surveyResult": JSON.stringify(answer.respuestas),
+                    }
+                    this.http.post('https://dxsurveyapi.azurewebsites.net/api/Survey/post/', postData).subscribe((response) => {
+                        console.log('Response', JSON.stringify(response));
+                    });            
+                });
+            }
+            loading.dismiss();
         });
     }
 

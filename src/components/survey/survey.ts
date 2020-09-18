@@ -32,20 +32,24 @@ export class SurveyComponent {
         let surveyModel
         if(surveyAndMode['mode']){
             surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
+            this.renderSurvey(surveyModel);
         }else{
             FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
                 surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
-                // Change language.
-                surveyModel.locale = "es";
-                // Progress Bar.
-                surveyModel.showProgressBar = 'bottom';
-
-                //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
-                surveyModel.onComplete.add(this.sendDataToServer.bind(this));
-                Survey.SurveyNG.render('surveyElement', { model: surveyModel });
+                this.renderSurvey(surveyModel);
             });
         }
-        
+    }
+
+    renderSurvey(surveyModel){
+        // Change language.
+        surveyModel.locale = "es";
+        // Progress Bar.
+        surveyModel.showProgressBar = 'bottom';
+
+        //FileManager.saveQuestions(surveyModel['propertyHash']['surveyId'], surveyModel, 'Encuestas');
+        surveyModel.onComplete.add(this.sendDataToServer.bind(this));
+        Survey.SurveyNG.render('surveyElement', { model: surveyModel });
     }
 
     constructor() {
@@ -59,15 +63,19 @@ export class SurveyComponent {
         //console.log("postId", this._survey.PostId);
         if(this._mode){
             survey.sendResult(this._survey.PostId);
+        }else{
+            // Verificar si existe el directorio
+            const respuestas    = survey.valuesHash;
+            const id_encuesta   = this._survey.Id;
+            const id_encuesta_respondida = this._survey.PostId;
+            let content = {};
+            content['respuestas'] = respuestas;
+            content['postId'] = id_encuesta_respondida;
+            await FileManager.createDirectoryIfDoesntExist('Respuestas');
+            await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/')
+            await FileManager.writeFile(id_encuesta_respondida, JSON.stringify(content), 'Respuestas/'+id_encuesta)
+            console.log("Sending data: ", survey.valuesHash)
         }
-        // Verificar si existe el directorio
-        const respuestas    = survey.valuesHash;
-        const id_encuesta   = survey.propertyHash.surveyId;
-        const id_encuesta_respondida = this._survey.PostId;
-        await FileManager.createDirectoryIfDoesntExist('Respuestas');
-        await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/')
-        await FileManager.writeFile(id_encuesta_respondida, JSON.stringify(respuestas), 'Respuestas/'+id_encuesta)
-        console.log("Sending data: ", survey.valuesHash)
     };
 
 
