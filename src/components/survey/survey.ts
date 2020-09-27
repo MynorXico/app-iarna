@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
 
 import * as Survey from 'survey-angular';
-
+import {Peticion} from '../../models/peticion.model';
 import  FileManager from '../../files/file_management';
-
+import {Database} from '../../db/database';
 
 
 /**
@@ -52,7 +52,7 @@ export class SurveyComponent {
         Survey.SurveyNG.render('surveyElement', { model: surveyModel });
     }
 
-    constructor() {
+    constructor(private db:Database) {
     }
 
     ionViewDidLoad() {
@@ -72,8 +72,19 @@ export class SurveyComponent {
             content['respuestas'] = respuestas;
             content['postId'] = id_encuesta_respondida;
             await FileManager.createDirectoryIfDoesntExist('Respuestas');
-            await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/')
-            await FileManager.writeFile(id_encuesta_respondida, JSON.stringify(content), 'Respuestas/'+id_encuesta)
+            await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/');
+
+            let responseFileName:String = await FileManager.getFileName('Respuesta_1','Respuestas/'+id_encuesta+'/')
+
+            await FileManager.writeFile(responseFileName, JSON.stringify(content), 'Respuestas/'+id_encuesta)
+            .then(()=> {
+                /* Insertar el archivo en BDD */
+                const item:Peticion = {id: 1, estado: 0, path: 'Respuestas/'+id_encuesta+'/'+responseFileName};
+                this.db.insertRow(item).then (()=>{
+                    console.log("Saved on database");
+                });      
+            })
+
             console.log("Sending data: ", survey.valuesHash)
         }
     };

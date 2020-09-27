@@ -61,7 +61,7 @@ export class Database{
         manera asincrona.
     */
     getRows(): Promise<any> {
-        return this.databaseObj.executeSql(`SELECT * FROM ${this.table_name}`, []);
+        return this.databaseObj.executeSql(`SELECT * FROM ${this.table_name} WHERE estado = 0`, []);
     }
 
     /*
@@ -70,6 +70,10 @@ export class Database{
     */
     deleteRow(id: number): Promise<any>{
         return this.databaseObj.executeSql(`DELETE FROM ${this.table_name} WHERE id = ${id}`, [])
+    }
+
+    deleteRows(): Promise<any>{
+        return this.databaseObj.executeSql(`DELETE FROM ${this.table_name} WHERE estado = 2`, [])
     }
 
     /*

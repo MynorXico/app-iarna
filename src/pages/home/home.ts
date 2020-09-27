@@ -28,6 +28,7 @@ export class HomePage {
     noSurveys: boolean = false;
     currentYear = new Date().getFullYear();
     textoModo: string;
+    respuestasPendientes: number;
     modo: boolean;
     peticiones: Peticion[]
 
@@ -39,7 +40,9 @@ export class HomePage {
         this.modo = true;
         this.cambioModo();
         this.getSurveys();
-                
+
+        this.respuestasPendientes = 0;
+            
         // TO TEST API WRAPPER UNCOMMENT THIS CODE. 
         /*
         this.apiWrapper.api.surveys.get('getActive', { accessKey: true, ownerId: true }).subscribe(
@@ -54,9 +57,23 @@ export class HomePage {
  
     }
 
+    ionViewWillEnter (){
+        this.obtenerDatosRespuestas();
+    }
 
     cambioModo() {
         this.textoModo = this.modo?'Online':'Offline';
+    }
+
+    obtenerDatosRespuestas(){
+        this.db.getRows().then(
+            (data)=>{
+                this.respuestasPendientes = data.rows.length;
+            }
+        ).catch((error)=>{
+            alert("Error: "+JSON.stringify(error));
+        })
+
     }
 
     /*
@@ -143,20 +160,33 @@ export class HomePage {
             content: "Subiendo respuestas..."
         });
         loading.present();
-        FileManager.getAnswers().then((answersFromFileSystem) => {
-            if(answersFromFileSystem.length > 0){
-                answersFromFileSystem.forEach(answer => {
-                    let postData = {
-                        "postId": answer.postId,
-                        "surveyResult": JSON.stringify(answer.respuestas),
+        
+        this.UpdateDBFiles()
+        .then(()=>{
+            this.db.deleteRows()
+            .then(()=>{
+                loading.dismiss();
+                this.db.getRows().then(
+                    (data)=>{
+                        let pendientes = data.rows.length;
+                        if(data.rows.length > 0){
+                            alert("Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.")
+                        }
                     }
-                    this.http.post('https://dxsurveyapi.azurewebsites.net/api/Survey/post/', postData).subscribe((response) => {
-                        console.log('Response', JSON.stringify(response));
-                    });            
-                });
-            }
+                ).catch((error)=>{
+                    alert("Error: "+JSON.stringify(error));
+                })
+        
+                
+            })
+            .catch(()=>{
+                loading.dismiss();
+            });
+        })
+        .catch(()=>{
             loading.dismiss();
         });
+
     }
 
     getActiveSurveys() {
@@ -180,6 +210,94 @@ export class HomePage {
                     loading.dismiss();
             }
         );
+    }
+
+    async UpdateDBFiles(){
+        let resultado = true;
+
+        await this.db.getRows()
+        .then( data => {
+            if(data.rows.length > 0){
+                for(let i = 0; i < data.rows.length; i++){
+                    let element = data.rows.item(i);
+
+                    let item:Peticion = {id: element.id, estado: 1, path: element.path};
+                    this.db.updateRow(item)
+                    .then((res)=>{
+                        FileManager.getAnswer(element.path.toString())
+                        .then(
+                            answer => {
+                                if(answer.exists){
+                                    let content = JSON.parse(answer.content);
+                                    let postData = {
+                                        "postId": content.postId,
+                                        "surveyResult": JSON.stringify(content.respuestas),
+                                    }
+      
+                                    this.http.post('https://dxsurveyapi.azurewebsites.net/api/Survey/post/', postData, {responseType:'text'}).subscribe(
+                                            (res) => {
+                                                FileManager.deleteFile(element.path.toString())
+                                                .then((r)=>{
+                                                    if(r){
+                                                        item.estado = 2;
+                                                        this.db.updateRow(item)
+                                                        .then((r)=>{
+                                                            this.obtenerDatosRespuestas();
+                                                        })
+                                                        .catch((e)=>{
+                                                            console.log('Error ', JSON.stringify(e))
+                                                        })
+                                                    }else{
+                                                        console.log('No fue posible eliminar el archivo.')
+                                                    }
+                                                })
+                                                .catch((e)=>{
+                                                    console.log('Error ', JSON.stringify(e))
+                                                })    
+                                            },
+                                            (err) => {
+                                                resultado = false;
+                                                item.estado = 0;
+                                                this.db.updateRow(item)
+                                                .then((r)=> console.log("Se regreso estado a 0, porque no se pudo sincronizar respuesta: " + item.path, JSON.stringify(err)))
+                                                .catch((e)=> console.log('Error ', JSON.stringify(e)));
+                                            }
+                                    );
+                                    
+                                }else{
+                                    this.db.deleteRow(element.id)
+                                    .then( () => {
+                                        alert("No existe el archivo: " + element.path)
+                                    });
+                                }                      
+                            }
+                        )
+                        .catch(
+                            error => {
+                                console.log(error);
+                                resultado = false;
+                            }
+                        );
+                    })
+                    .catch((error)=>{
+                        console.log("No fue posible actualizar registro ", JSON.stringify(element), JSON.stringify(error));
+                        resultado = false;
+                    })
+                }
+            }
+            else{
+                alert("No existen respuestas pendientes de sincronizar"); 
+                resultado = false;
+            }
+        })
+        .catch(
+            err => {
+                console.log('Error: ' + err.message);
+                resultado = false;
+            }
+        );
+
+        return resultado;
     }
 
     // getArchiveSurveys() {

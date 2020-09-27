@@ -19,20 +19,26 @@
     </ion-fab>
     <div class="contenedor-encabezado">
         <div class="encabezado" top left>
-            <button *ngIf="modo" (click)="downloadSurveys(surveys)" ion-button color="danger"><ion-icon  name="cloud-download"></ion-icon></button>
-            <button *ngIf="modo" (click)="uploadSurveys()" ion-button color="danger"><ion-icon  name="cloud-upload"></ion-icon></button>
-            <ion-item>
+            <div class="acciones">
+                <button *ngIf="modo" (click)="downloadSurveys(surveys)" ion-button color="danger"><ion-icon  name="cloud-download"></ion-icon></button>
+                <button *ngIf="modo" (click)="uploadSurveys()" ion-button color="danger"><ion-icon  name="cloud-upload"></ion-icon></button>
+                <div *ngIf="respuestasPendientes > 0 && modo" class="numberCircle">{{ respuestasPendientes }}</div>
+            </div>
+            <div class="offLineActions" *ngIf="!modo">
+                <ion-label class="encabezado-font">Respuestas:</ion-label>
+                <div class="numberCircleOff">{{ respuestasPendientes }}</div>
+            </div>
+            <ion-item no-lines>
                 <ion-label class="encabezado-font">{{ textoModo }}</ion-label>
                 <ion-toggle (ionChange)="cambioModo()" [(ngModel)]="modo"></ion-toggle>
             </ion-item>
-        </div>
-        
+        </div>   
     </div>
 
-        
-    
-    <br> <br>
-    <h4>Encuestas Activa</h4>
+    <div class="title-home">
+        <h4>Encuestas Activas</h4>
+    </div>
+   
     <ion-list>
 
         <ion-item-sliding *ngFor="let survey of surveys; let i = index" #slidingItem>

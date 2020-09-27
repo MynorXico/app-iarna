@@ -115,21 +115,52 @@ export default class FileManager {
         return finalAnswers;
     }
 
+    static async getAnswer(path:string){
+        
+        let answer = { exists: true, content: ''};
+
+        try{
+            let temp = path.split('/');
+            let filename:string = temp.splice(temp.length-1, 1)[0];
+            let dir:string = temp.join('/');
+
+            if(await this.checkFile(dir + '/', filename)){
+                answer.content = await this.readFile(dir, filename);
+                answer.exists = true;
+            }else{
+                answer.exists = false;
+            }
+
+            return answer
+        }
+        catch(err){
+            return err
+        }
+    }
+
     /*
         Devuelve el contenido del archivo path/file
     */
-   static async readFile(path, filename){
+   static async readFile(path:string, filename:string){
        const file = new File();
-       let content = null;
-       await file.readAsText(file.dataDirectory + path, filename)
-        .then(data => {
-            content = data
-        })
-        .catch(err => {
-            console.log("Error at reading file at "+ path+ "/"+filename);
-            console.log(err)
-        })
-        return content;
+
+       return await file.readAsText(file.dataDirectory + path, filename);
+   }
+
+   static async checkFile(path, name){
+        const file = new File();
+
+        let file_exists = false;
+
+        await file.checkFile(file.dataDirectory + path, name)
+            .then(_ => {
+                file_exists = true;
+            })
+            .catch(err => {
+               file_exists = false;
+            })
+
+        return file_exists;
    }
 
 
@@ -159,4 +190,43 @@ export default class FileManager {
         }
         return dir_created;
     }
+
+    /*
+       Obtiene un nombre disponible para la respuesta en el path indicado.
+    */
+    static async getFileName(dirName, path = ""){
+        let i:number = 1;
+        let name:string = dirName;
+        let exists:boolean = true;
+        const file = new File();
+
+        while(exists){
+            await file.checkFile(file.dataDirectory + path, name)
+            .then( _ => {
+                i++;
+                name = 'Respuesta_' +i.toString();
+                exists = true;             
+            })
+            .catch(e => {
+                console.log("Error directory not found: " + file.dataDirectory + path + name);
+                exists = false;
+            })
+        }
+
+        return name;
+    }
+
+    static async deleteFile(path = ""){
+        let temp = path.split('/');
+        let filename = temp.splice(temp.length-1, 1).toString();
+        let dir = temp.join('/');
+
+        const file = new File();
+
+        let result = await file.removeFile(file.dataDirectory + dir + '/', filename);
+
+        return result.success;
+    }
+
+
 }

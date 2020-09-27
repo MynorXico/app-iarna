@@ -9,7 +9,6 @@ page-home {
   }
 
   .encabezado{
-    width: 230px; 
     display: flex;
     flex-direction: row; 
   }
@@ -17,7 +16,50 @@ page-home {
   .encabezado-font{
     color:black; 
     text-align: right;
-    
+    font-size: medium;
+  }
+
+  .acciones{
+    display: flex;
+  }
+
+  .title-home{
+    margin-top: 5%;
+  }
+
+  .offLineActions{
+      display: flex;
+      text-align: center;
+      align-content: center;
+      align-items: center;
+  }
+
+  .numberCircle {
+    width: 30px;
+    line-height: 30px;
+    border-radius: 80%;
+    text-align: center;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 30px;
+    background-color: darkblue;
+    color: white;
+    font-weight: bold;
+  }
+
+  .numberCircleOff {
+    width: 30px;
+    line-height: 30px;
+    border-radius: 80%;
+    text-align: center;
+    font-size: 13px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 30px;
+    background-color: darkblue;
+    color: white;
+    font-weight: bold;
   }
 
   h4 {
