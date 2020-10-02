@@ -85,6 +85,13 @@ page-home {
     padding: 10px;
   }
 
+  .success-message {
+    background-color: map-get($colors, secondary);
+    color: #fff;
+    border: 1px solid #32db64;
+    padding: 10px;
+  }
+
   a, ion-buttons {
     color: white;
   }

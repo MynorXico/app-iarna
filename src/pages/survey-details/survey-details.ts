@@ -28,6 +28,7 @@ export class SurveyDetailsPage {
         this.surveyAndMode = new Object();
         this.surveyAndMode["survey"] = this.survey;
         this.surveyAndMode["mode"] = this.mode;
+        console.log(" my files : ",this.surveyAndMode);
     }
 
     ionViewDidLoad() {

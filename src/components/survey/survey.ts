@@ -34,8 +34,12 @@ export class SurveyComponent {
             surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
             this.renderSurvey(surveyModel);
         }else{
-            FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
-                surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
+            // FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
+            //     surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
+            //     this.renderSurvey(surveyModel);
+            // });
+            FileManager.getQuestions(this._survey.Id).then((surveyFromStorage) => {
+                surveyModel = new Survey.ReactSurveyModel({surveyId: this._survey.Id});
                 this.renderSurvey(surveyModel);
             });
         }

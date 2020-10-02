@@ -1,4 +1,4 @@
-import { File } from "@ionic-native/file";
+import {File} from "@ionic-native/file";
 
 export default class FileManager {
 
@@ -14,7 +14,7 @@ export default class FileManager {
     */
     static async directoryExists(dirName, path = "") {
         const file = new File();
-
+        console.log("here : ", file.dataDirectory + path + dirName);
         let dir_exists = false;
         await file.checkDir(file.dataDirectory + path, dirName)
             .then(_ => {
@@ -22,18 +22,23 @@ export default class FileManager {
                 console.log("Directory exists: " + file.dataDirectory + path + dirName);
             })
             .catch(err => {
-                console.log("Error directory not found: ", + file.dataDirectory + path + dirName,  err);
+                console.log("Error directory not found: ", +file.dataDirectory + path + dirName, err);
                 dir_exists = false;
             })
         return dir_exists;
     }
 
 
-    static async saveQuestions(filename, current_questions, path =""){
-        let current_content = await this.readFile(path, filename);
-        let new_content = JSON.parse(current_content);
-        new_content['questions'] = current_questions;
-        this.writeFile(filename, JSON.stringify(new_content), path);
+    static async saveQuestions(filename, current_questions, path = "") {
+        try {
+            let current_content = await this.readFile(path, filename);
+            let new_content = JSON.parse(current_content);
+            new_content['questions'] = current_questions;
+            return this.writeFile(filename, JSON.stringify(new_content), path);
+        } catch (err) {
+            console.log('save Question error : ' + path + "/" + filename, err);
+            return true;
+        }
     }
 
     /*
@@ -47,93 +52,92 @@ export default class FileManager {
         });
         const file = new File();
         let file_written = false;
-
         await file.writeFile(file.dataDirectory + path, filename, content, {
             replace: true
-        })
-            .then(_ => {
-                file_written = true;
-                console.log("File " + file.dataDirectory + path + "/" + filename + " was written");
-            })
-            .catch(err => {
-                console.log("Failed at writing "+file.dataDirectory + path + "/" + filename, err)
-                file_written = false;
-            });
-        console.log("File content: "+await this.readFile(path, filename));
+        }).then(_ => {
+            file_written = true;
+            console.log("File " + file.dataDirectory + path + "/" + filename + " was written");
+        }).catch(err => {
+            console.log("Failed at writing " + file.dataDirectory + path + "/" + filename, err)
+            file_written = false;
+        });
+        console.log("File content: " + await this.readFile(path, filename));
         return file_written;
     }
 
-    static async getQuestions(surveyId){
+    static async getQuestions(surveyId) {
         let current_content = await this.readFile('Encuestas', surveyId);
-        return JSON.parse(current_content).questions;
+        return JSON.parse(current_content);
     }
 
-    static async getSurveys(){
+    static async getSurveys() {
         let surveys = new Array();
-        if(this.directoryExists('Encuestas')){
+        if (this.directoryExists('Encuestas')) {
             const file = new File();
-            try{
+            try {
                 let files = await file.listDir(file.dataDirectory, 'Encuestas');
                 console.log(files);
-                for(const file of files){
-                    if(file.isFile){
+                for (const file of files) {
+                    if (file.isFile) {
                         let survey = JSON.parse(await this.readFile('Encuestas', file.name));
                         surveys.push(survey);
                     }
-                };
-            }catch(err){
+                }
+            } catch (err) {
                 console.log(err);
             }
         }
         return surveys;
     }
 
-    static async getAnswers(){
+    static async getAnswers() {
         let finalAnswers = new Array();
-        if(this.directoryExists('Respuestas')){
+        if (this.directoryExists('Respuestas')) {
             const file = new File();
-            try{
+            try {
                 let surveys = await file.listDir(file.dataDirectory, 'Respuestas');
                 console.log('Survey', surveys);
-                for(const survey of surveys){
-                    if(survey.isDirectory){
+                for (const survey of surveys) {
+                    if (survey.isDirectory) {
                         console.log(file.dataDirectory + 'Respuestas')
                         let answers = await file.listDir(file.dataDirectory, 'Respuestas/' + survey.name);
                         console.log('Answers', answers);
-                        for(const answer of answers){
-                            if(answer.isFile){
+                        for (const answer of answers) {
+                            if (answer.isFile) {
                                 let answerFromFile = JSON.parse(await this.readFile('Respuestas/' + survey.name, answer.name));
                                 finalAnswers.push(answerFromFile);
                             }
-                        };
+                        }
+                        ;
                     }
-                };
-            }catch(err){
+                }
+                ;
+            } catch (err) {
                 console.log(err);
             }
         }
         return finalAnswers;
     }
 
-    static async getAnswer(path:string){
-        
-        let answer = { exists: true, content: ''};
+    static async getAnswer(path: string) {
 
-        try{
+        let answer = {exists: true, content: ''};
+
+        try {
             let temp = path.split('/');
-            let filename:string = temp.splice(temp.length-1, 1)[0];
-            let dir:string = temp.join('/');
+            let filename: string = temp.splice(temp.length - 1, 1)[0];
+            let dir: string = temp.join('/');
 
-            if(await this.checkFile(dir + '/', filename)){
+            if (await this.checkFile(dir + '/', filename)) {
                 answer.content = await this.readFile(dir, filename);
                 answer.exists = true;
-            }else{
+            } else {
                 answer.exists = false;
             }
 
             return answer
         }
-        catch(err){
+        catch (err) {
             return err
         }
     }
@@ -141,13 +145,13 @@ export default class FileManager {
     /*
         Devuelve el contenido del archivo path/file
     */
-   static async readFile(path:string, filename:string){
-       const file = new File();
+    static async readFile(path: string, filename: string) {
+        const file = new File();
+        console.log(file.dataDirectory + path);
+        return await file.readAsText(file.dataDirectory + path, filename);
+    }
 
-       return await file.readAsText(file.dataDirectory + path, filename);
-   }
-
-   static async checkFile(path, name){
+    static async checkFile(path, name) {
         const file = new File();
 
         let file_exists = false;
@@ -157,11 +161,11 @@ export default class FileManager {
                 file_exists = true;
             })
             .catch(err => {
-               file_exists = false;
+                file_exists = false;
             })
 
         return file_exists;
-   }
+    }
 
 
     /*
@@ -194,31 +198,31 @@ export default class FileManager {
     /*
        Obtiene un nombre disponible para la respuesta en el path indicado.
     */
-    static async getFileName(dirName, path = ""){
-        let i:number = 1;
-        let name:string = dirName;
-        let exists:boolean = true;
+    static async getFileName(dirName, path = "") {
+        let i: number = 1;
+        let name: string = dirName;
+        let exists: boolean = true;
         const file = new File();
 
-        while(exists){
+        while (exists) {
             await file.checkFile(file.dataDirectory + path, name)
-            .then( _ => {
-                i++;
-                name = 'Respuesta_' +i.toString();
-                exists = true;             
-            })
-            .catch(e => {
-                console.log("Error directory not found: " + file.dataDirectory + path + name);
-                exists = false;
-            })
+                .then(_ => {
+                    i++;
+                    name = 'Respuesta_' + i.toString();
+                    exists = true;
+                })
+                .catch(e => {
+                    console.log("Error directory not found: " + file.dataDirectory + path + name);
+                    exists = false;
+                })
         }
 
         return name;
     }
 
-    static async deleteFile(path = ""){
+    static async deleteFile(path = "") {
         let temp = path.split('/');
-        let filename = temp.splice(temp.length-1, 1).toString();
+        let filename = temp.splice(temp.length - 1, 1).toString();
         let dir = temp.join('/');
 
         const file = new File();
@@ -228,5 +232,45 @@ export default class FileManager {
         return result.success;
     }
 
-
+    static async deleteSurveys() {
+        var EncuestasDeleted = false;
+        if (this.directoryExists('Encuestas')) {
+            const fileObj = new File();
+            try {
+                let filesEncuestas = await fileObj.listDir(fileObj.dataDirectory, 'Encuestas');
+                for (const file of filesEncuestas) {
+                    if (file.isFile) {
+                        fileObj.removeFile(fileObj.dataDirectory + 'Encuestas/', file.name);
+                    }
+                }
+                ;
+                EncuestasDeleted = true;
+            } catch (err) {
+                console.log("delete survey files error Encuestas : ", err);
+            }
+        }
+        if (this.directoryExists('Respuestas')) {
+            const fileObj = new File();
+            try {
+                let filesRespuestas = await fileObj.listDir(fileObj.dataDirectory, 'Respuestas');
+                for (const file of filesRespuestas) {
+                    if (file.isFile) {
+                        fileObj.removeFile(fileObj.dataDirectory + 'Respuestas/', file.name);
+                    }
+                }
+                ;
+                return true;
+            } catch (err) {
+                console.log("delete survey files error Respuestas : ", err);
+                if (EncuestasDeleted == true) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else if (EncuestasDeleted == true) {
+            return true;
+        }
+        return false;
+    }
 }

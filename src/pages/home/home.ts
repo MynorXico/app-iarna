@@ -1,36 +1,42 @@
-import { Component } from '@angular/core';
-import { NavController, LoadingController, AlertController, ItemSliding } from 'ionic-angular';
+import {Component} from '@angular/core';
+import {NavController, LoadingController, AlertController, ItemSliding} from 'ionic-angular';
 
-import { SurveyProvider } from '../../providers/survey/survey';
-import { SurveyDetailsPage } from '../survey-details/survey-details';
+import {SurveyProvider} from '../../providers/survey/survey';
+import {SurveyDetailsPage} from '../survey-details/survey-details';
 
-import { SurveyModel } from "../../models/survey.model";
+import {SurveyModel} from "../../models/survey.model";
 
-import { ApiWrapper } from '../../providers/survey/api-wrapper';
+import {ApiWrapper} from '../../providers/survey/api-wrapper';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
-import { Database } from '../../db/database';
-import { Peticion } from '../../models/peticion.model';
-import { HttpClient } from '@angular/common/http';
+import {Database} from '../../db/database';
+import {Peticion} from '../../models/peticion.model';
+import {HttpClient} from '@angular/common/http';
 
-
-import  FileManager from '../../files/file_management';
+import FileManager from '../../files/file_management';
 
 @Component({
     selector: 'page-home',
     templateUrl: 'home.html'
 })
 export class HomePage {
-    
+
     surveys: SurveyModel[];
     archiveSurveys: SurveyModel[];
     defaultImages: any;
-    noSurveys: boolean = false;
+    // noSurveys: boolean = false;
     currentYear = new Date().getFullYear();
     textoModo: string;
     respuestasPendientes: number;
     modo: boolean;
     peticiones: Peticion[]
+    SuccessStatus: boolean = false;
+    FailStatus: boolean = false;
+    SurveyDownloadFailMessage: string = "Las encuestas NO se descargaron correctamente";
+    SurveyDownloadSuccessMessage: string = "Se descargaron las encuestas correctamente";
+    NoSurveyErrorMessage: string = "No se pudo obtener encuestas porfavor verifique la conexión a internet.";
+    FailMessage: string;
+    SuccessMessage: string;
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
                 public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper,
@@ -42,7 +48,7 @@ export class HomePage {
         this.getSurveys();
 
         this.respuestasPendientes = 0;
-            
+
         // TO TEST API WRAPPER UNCOMMENT THIS CODE. 
         /*
         this.apiWrapper.api.surveys.get('getActive', { accessKey: true, ownerId: true }).subscribe(
@@ -54,24 +60,24 @@ export class HomePage {
             }
         );
         */
- 
+
     }
 
-    ionViewWillEnter (){
+    ionViewWillEnter() {
         this.obtenerDatosRespuestas();
     }
 
     cambioModo() {
-        this.textoModo = this.modo?'Online':'Offline';
+        this.textoModo = this.modo ? 'Online' : 'Offline';
     }
 
-    obtenerDatosRespuestas(){
+    obtenerDatosRespuestas() {
         this.db.getRows().then(
-            (data)=>{
+            (data) => {
                 this.respuestasPendientes = data.rows.length;
             }
-        ).catch((error)=>{
-            alert("Error: "+JSON.stringify(error));
+        ).catch((error) => {
+            alert("Error: " + JSON.stringify(error));
         })
 
     }
@@ -79,7 +85,7 @@ export class HomePage {
     /*
         Este metodo obtiene data para pruebas
     */
-    ejemploObtenerData(){
+    ejemploObtenerData() {
         this.peticiones = []
         this.db.getRows().then((res) => {
             if (res.rows.length > 0) {
@@ -96,9 +102,9 @@ export class HomePage {
                 alert(item.path)
             })
         })
-        .catch(e => {
-            alert("error " + JSON.stringify(e))
-        });
+            .catch(e => {
+                alert("error " + JSON.stringify(e))
+            });
     }
 
     getSurveys() {
@@ -106,41 +112,59 @@ export class HomePage {
             content: "Cargando encuestas..."
         });
         loading.present();
-        if(this.modo){
+        if (this.modo) {
             Observable.forkJoin(this.surveyProvider.getActiveSurveys(), this.surveyProvider.getArchiveSurveys())
-            .subscribe(async data => {
-                console.log('SurveyData', data);
-                this.surveys = SurveyModel.fromJSONArray(data[0]);
+                .subscribe(async data => {
+                        console.log('SurveyData', data);
+                        this.surveys = SurveyModel.fromJSONArray(data[0]);
 
-                // Guardar estas encuestas
-                console.log("Got surveys: ", this.surveys);
-                await FileManager.createDirectoryIfDoesntExist('Encuestas');
-                this.surveys.forEach((value, index)=> {
-                    let survey_id = value.Id;
-                    FileManager.writeFile(survey_id, JSON.stringify(value), 'Encuestas');
-                })
-                //console.log(this.surveys);
-                //this.archiveSurveys = SurveyModel.fromJSONArray(data[1]);
-                loading.dismiss();
-            },
-            error => {
-                console.log(<any>error);
-                if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) this.noSurveys = true;
-                loading.dismiss();
-            });
-        }else{
+                        // Guardar estas encuestas
+                        console.log("Got surveys: ", this.surveys);
+                        await FileManager.createDirectoryIfDoesntExist('Encuestas');
+                        this.surveys.forEach((value, index) => {
+                            let survey_id = value.Id;
+                            FileManager.writeFile(survey_id, JSON.stringify(value), 'Encuestas');
+                        })
+                        //console.log(this.surveys);
+                        //this.archiveSurveys = SurveyModel.fromJSONArray(data[1]);
+                        loading.dismiss();
+                    },
+                    error => {
+                        console.log(<any>error);
+                        if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) {
+                            // this.noSurveys = true;
+                            this.SuccessStatus = false;
+                            this.FailMessage = this.NoSurveyErrorMessage;
+                            this.FailStatus = true;
+                            setTimeout(() => {
+                                this.SuccessStatus = false;
+                                this.FailStatus = false;
+                            }, 5000);
+                        }
+                        loading.dismiss();
+                    });
+        } else {
             FileManager.getSurveys().then((surveysFromFileSystem) => {
-                if(surveysFromFileSystem.length > 0){
+                if (surveysFromFileSystem.length > 0) {
                     this.surveys = SurveyModel.fromJSONArray(surveysFromFileSystem);
-                }else{
-                    this.noSurveys = true;
+                } else {
+                    // this.noSurveys = true;
+                    this.SuccessStatus = false;
+                    this.FailMessage = this.NoSurveyErrorMessage;
+                    this.FailStatus = true;
+                    setTimeout(() => {
+                        this.SuccessStatus = false;
+                        this.FailStatus = false;
+                    }, 5000);
                 }
                 loading.dismiss();
             });
         }
     }
 
-    downloadSurveys(surveys){
+    downloadSurveys(surveys) {
+        this.SuccessStatus = false;
+        this.FailStatus = false;
         let loading = this.loadingCtrl.create({
             content: "Descargando encuestas..."
         });
@@ -149,43 +173,59 @@ export class HomePage {
         surveys.forEach(survey => {
             this.http.get('https://dxsurveyapi.azurewebsites.net/api/Survey/getSurvey?surveyId=' + survey.Id).subscribe((response) => {
                 console.log('Questions', JSON.stringify(response));
-                FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas');
-            });            
+                this.getSurveys();
+                FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas').then((res) => {
+                    if (res === true && this.SuccessStatus === false) {
+                        this.FailStatus = false;
+                        this.SuccessMessage = this.SurveyDownloadSuccessMessage;
+                        this.SuccessStatus = true;
+                    } else if (res === false && this.FailStatus === false) {
+                        this.SuccessStatus = false;
+                        this.FailMessage = this.SurveyDownloadFailMessage;
+                        this.FailStatus = true;
+                    }
+                    setTimeout(() => {
+                        this.SuccessStatus = false;
+                        this.FailStatus = false;
+                    }, 5000);
+                });
+                ;
+            });
         });
         loading.dismiss();
     }
 
-    uploadSurveys(){
+    uploadSurveys() {
         let loading = this.loadingCtrl.create({
             content: "Subiendo respuestas..."
         });
         loading.present();
-        
+
         this.UpdateDBFiles()
-        .then(()=>{
-            this.db.deleteRows()
-            .then(()=>{
-                loading.dismiss();
-                this.db.getRows().then(
-                    (data)=>{
-                        let pendientes = data.rows.length;
-                        if(data.rows.length > 0){
-                            alert("Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.")
-                        }
-                    }
-                ).catch((error)=>{
-                    alert("Error: "+JSON.stringify(error));
-                })
-        
-                
+            .then(() => {
+                this.db.deleteRows()
+                    .then(() => {
+                        loading.dismiss();
+                        this.db.getRows().then(
+                            (data) => {
+                                let pendientes = data.rows.length;
+                                if (data.rows.length > 0) {
+                                    alert("Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.")
+                                }
+                            }
+                        ).catch((error) => {
+                            alert("Error: " + JSON.stringify(error));
+                        })
+
+
+                    })
+                    .catch(() => {
+                        loading.dismiss();
+                    });
             })
-            .catch(()=>{
+            .catch(() => {
                 loading.dismiss();
             });
-        })
-        .catch(()=>{
-            loading.dismiss();
-        });
 
     }
 
@@ -206,96 +246,104 @@ export class HomePage {
                 },
                 error => {
                     console.log(<any>error);
-                    if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) this.noSurveys = true;
+                    if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) {
+                        this.SuccessStatus = false;
+                        this.FailMessage = this.NoSurveyErrorMessage;
+                        this.FailStatus = true;
+                        setTimeout(() => {
+                            this.SuccessStatus = false;
+                            this.FailStatus = false;
+                        }, 5000);
+                    }
                     loading.dismiss();
-            }
-        );
+                }
+            );
     }
 
-    async UpdateDBFiles(){
+    async UpdateDBFiles() {
         let resultado = true;
 
         await this.db.getRows()
-        .then( data => {
-            if(data.rows.length > 0){
-                for(let i = 0; i < data.rows.length; i++){
-                    let element = data.rows.item(i);
+            .then(data => {
+                if (data.rows.length > 0) {
+                    for (let i = 0; i < data.rows.length; i++) {
+                        let element = data.rows.item(i);
 
-                    let item:Peticion = {id: element.id, estado: 1, path: element.path};
-                    this.db.updateRow(item)
-                    .then((res)=>{
-                        FileManager.getAnswer(element.path.toString())
-                        .then(
-                            answer => {
-                                if(answer.exists){
-                                    let content = JSON.parse(answer.content);
-                                    let postData = {
-                                        "postId": content.postId,
-                                        "surveyResult": JSON.stringify(content.respuestas),
-                                    }
-      
-                                    this.http.post('https://dxsurveyapi.azurewebsites.net/api/Survey/post/', postData, {responseType:'text'}).subscribe(
-                                            (res) => {
-                                                FileManager.deleteFile(element.path.toString())
-                                                .then((r)=>{
-                                                    if(r){
-                                                        item.estado = 2;
+                        let item: Peticion = {id: element.id, estado: 1, path: element.path};
+                        this.db.updateRow(item)
+                            .then((res) => {
+                                FileManager.getAnswer(element.path.toString())
+                                    .then(
+                                        answer => {
+                                            if (answer.exists) {
+                                                let content = JSON.parse(answer.content);
+                                                let postData = {
+                                                    "postId": content.postId,
+                                                    "surveyResult": JSON.stringify(content.respuestas),
+                                                }
+
+                                                this.http.post('https://dxsurveyapi.azurewebsites.net/api/Survey/post/', postData, {responseType: 'text'}).subscribe(
+                                                    (res) => {
+                                                        FileManager.deleteFile(element.path.toString())
+                                                            .then((r) => {
+                                                                if (r) {
+                                                                    item.estado = 2;
+                                                                    this.db.updateRow(item)
+                                                                        .then((r) => {
+                                                                            this.obtenerDatosRespuestas();
+                                                                        })
+                                                                        .catch((e) => {
+                                                                            console.log('Error ', JSON.stringify(e))
+                                                                        })
+                                                                } else {
+                                                                    console.log('No fue posible eliminar el archivo.')
+                                                                }
+                                                            })
+                                                            .catch((e) => {
+                                                                console.log('Error ', JSON.stringify(e))
+                                                            })
+                                                    },
+                                                    (err) => {
+                                                        resultado = false;
+                                                        item.estado = 0;
                                                         this.db.updateRow(item)
-                                                        .then((r)=>{
-                                                            this.obtenerDatosRespuestas();
-                                                        })
-                                                        .catch((e)=>{
-                                                            console.log('Error ', JSON.stringify(e))
-                                                        })
-                                                    }else{
-                                                        console.log('No fue posible eliminar el archivo.')
+                                                            .then((r) => console.log("Se regreso estado a 0, porque no se pudo sincronizar respuesta: " + item.path, JSON.stringify(err)))
+                                                            .catch((e) => console.log('Error ', JSON.stringify(e)));
                                                     }
-                                                })
-                                                .catch((e)=>{
-                                                    console.log('Error ', JSON.stringify(e))
-                                                })    
-                                            },
-                                            (err) => {
-                                                resultado = false;
-                                                item.estado = 0;
-                                                this.db.updateRow(item)
-                                                .then((r)=> console.log("Se regreso estado a 0, porque no se pudo sincronizar respuesta: " + item.path, JSON.stringify(err)))
-                                                .catch((e)=> console.log('Error ', JSON.stringify(e)));
+                                                );
+
+                                            } else {
+                                                this.db.deleteRow(element.id)
+                                                    .then(() => {
+                                                        alert("No existe el archivo: " + element.path)
+                                                    });
                                             }
+                                        }
+                                    )
+                                    .catch(
+                                        error => {
+                                            console.log(error);
+                                            resultado = false;
+                                        }
                                     );
-                                    
-                                }else{
-                                    this.db.deleteRow(element.id)
-                                    .then( () => {
-                                        alert("No existe el archivo: " + element.path)
-                                    });
-                                }                      
-                            }
-                        )
-                        .catch(
-                            error => {
-                                console.log(error);
+                            })
+                            .catch((error) => {
+                                console.log("No fue posible actualizar registro ", JSON.stringify(element), JSON.stringify(error));
                                 resultado = false;
-                            }
-                        );
-                    })
-                    .catch((error)=>{
-                        console.log("No fue posible actualizar registro ", JSON.stringify(element), JSON.stringify(error));
-                        resultado = false;
-                    })
+                            })
+                    }
                 }
-            }
-            else{
-                alert("No existen respuestas pendientes de sincronizar"); 
-                resultado = false;
-            }
-        })
-        .catch(
-            err => {
-                console.log('Error: ' + err.message);
-                resultado = false;
-            }
-        );
+                else {
+                    alert("No existen respuestas pendientes de sincronizar");
+                    resultado = false;
+                }
+            })
+            .catch(
+                err => {
+                    console.log('Error: ' + err.message);
+                    resultado = false;
+                }
+            );
 
         return resultado;
     }
@@ -323,79 +371,115 @@ export class HomePage {
     }
 
     presentAlert({
-        survey = null,
-        operation = '', 
-      } = {}) {
+                     survey = null,
+                     operation = '',
+                 } = {}) {
         let options = this.alertConfig(operation);
         let alert = this.alertCtrl.create({
-          title: options.title,
-          subTitle: options.subTitle,
-          buttons: [
-            {
-                text: 'Cancel',
-                handler: () => {
+            title: options.title,
+            subTitle: options.subTitle,
+            buttons: [
+                {
+                    text: 'Cancel',
+                    handler: () => {
+                    }
+                },
+                {
+                    text: 'Accept',
+                    handler: () => {
+                        if (operation == 'delete') this.deleteSurvey(survey);
+                        if (operation == 'activate') this.activateSurvey(survey);
+                        //if (operation == 'archive') this.archiveSurvey(survey);
+                        if (operation == "create") this.createSurvey("New Survey :)");
+                    }
                 }
-            },
-            {
-              text: 'Accept',
-              handler: () => {
-                if (operation == 'delete') this.deleteSurvey(survey);
-                if (operation == 'activate') this.activateSurvey(survey);
-                //if (operation == 'archive') this.archiveSurvey(survey);
-                if (operation == "create") this.createSurvey("New Survey :)");
-              }
-            }
-          ]
+            ]
         });
         alert.present();
     }
 
+    showPromptTrash(survey, slidingItem: ItemSliding) {
+        let prompt = this.alertCtrl.create({
+            title: 'Limpiar archivos',
+            message: "¿Desea limpiar el sistema de archivos?",
+            buttons: [
+                {
+                    text: 'Cancelar',
+                    handler: data => {
+
+                    }
+                },
+                {
+                    text: 'Aceptar',
+                    handler: data => {
+                        FileManager.deleteSurveys().then((res) => {
+                            if (res === true) {
+                                this.FailStatus = false;
+                                this.SuccessMessage = "Se borraron correctamente los archivos";
+                                this.SuccessStatus = true;
+                            } else {
+                                this.SuccessStatus = false;
+                                this.FailMessage = "No se borraron correctamente los archivos";
+                                this.FailStatus = true;
+                            }
+                            setTimeout(() => {
+                                this.SuccessStatus = false;
+                                this.FailStatus = false;
+                            }, 5000);
+                        });
+                    }
+                }
+            ]
+        });
+        prompt.present();
+    }
+
     showPrompt(survey, slidingItem: ItemSliding) {
         let prompt = this.alertCtrl.create({
-          title: 'Actualizar clave de acceso para cargar encuestas',
-          message: "Ingrese la nueva clave de acceso",
-          inputs: [
-            {
-              name: 'name',
-              //placeholder: 'Name'
-            },
-          ],
-          buttons: [
-            {
-              text: 'Cancelar',
-              handler: data => {
-                //console.log('Cancel clicked');
-              }
-            },
-            {
-              text: 'Aceptar',
-              handler: data => {
-                //console.log('Accept clicked');
-                //console.log(data);
-                //this.changeSurveyName(survey, data.name, slidingItem);
-                //this.surveyProvider.NewKey=data.name;
-                localStorage.setItem("newKey", data.name);
-                location.reload(); 
-                
-              }
-            }
-          ]
+            title: 'Actualizar clave de acceso para cargar encuestas',
+            message: "Ingrese la nueva clave de acceso",
+            inputs: [
+                {
+                    name: 'name',
+                    //placeholder: 'Name'
+                },
+            ],
+            buttons: [
+                {
+                    text: 'Cancelar',
+                    handler: data => {
+                        //console.log('Cancel clicked');
+                    }
+                },
+                {
+                    text: 'Aceptar',
+                    handler: data => {
+                        //console.log('Accept clicked');
+                        //console.log(data);
+                        //this.changeSurveyName(survey, data.name, slidingItem);
+                        //this.surveyProvider.NewKey=data.name;
+                        localStorage.setItem("newKey", data.name);
+                        location.reload();
+
+                    }
+                }
+            ]
         });
         prompt.present();
     }
 
     showPrompt1(survey, slidingItem: ItemSliding) {
         let prompt = this.alertCtrl.create({
-          title: '<div align="center"> Creditos </div>' ,
-          message: "<b> Edgar Pimentel </b> <br>" + "<b> Jose del Pozo </b> <br>" + "<b> Alberto Estrada </b> <br>" + "<b> Luis Pedro Gonzalez </b> <br>" + "<b> Oscar Gomez </b> <br>" + "<b> Miguel Rojas </b> <br>",
-          
-          buttons: [
-            
-            {
-              text: 'Aceptar',
-              
-            }
-          ]
+            title: '<div align="center"> Creditos </div>',
+            message: "<b> Edgar Pimentel </b> <br>" + "<b> Jose del Pozo </b> <br>" + "<b> Alberto Estrada </b> <br>" + "<b> Luis Pedro Gonzalez </b> <br>" + "<b> Oscar Gomez </b> <br>" + "<b> Miguel Rojas </b> <br>",
+
+            buttons: [
+
+                {
+                    text: 'Aceptar',
+
+                }
+            ]
         });
         prompt.present();
     }
@@ -408,18 +492,18 @@ export class HomePage {
         loading.present();
 
         this.surveyProvider.createSurvey(name)
-        .subscribe(
-            data => {
-                //console.log(data);
-                let survey: SurveyModel = new SurveyModel(data);
-                this.surveys.unshift(survey);
-                loading.dismiss();
-            },
-            error => {
-                console.log(<any>error);
-                loading.dismiss();
-            }
-        );
+            .subscribe(
+                data => {
+                    //console.log(data);
+                    let survey: SurveyModel = new SurveyModel(data);
+                    this.surveys.unshift(survey);
+                    loading.dismiss();
+                },
+                error => {
+                    console.log(<any>error);
+                    loading.dismiss();
+                }
+            );
     }
 
 
@@ -431,20 +515,20 @@ export class HomePage {
         loading.present();
 
         this.surveyProvider.deleteSurvey(survey.Id)
-        .subscribe(
-            data => {
-                console.log(data);
-                loading.dismiss();
-            },
-            error => {
-                console.log(<any>error);
-                if (error.status == 200) {
-                    if ( survey.IsArchived === false) this.surveys = this.removeElement(survey.Id, this.surveys);
-                    //else this.archiveSurveys = this.removeElement(survey.Id, this.archiveSurveys);
+            .subscribe(
+                data => {
+                    console.log(data);
+                    loading.dismiss();
+                },
+                error => {
+                    console.log(<any>error);
+                    if (error.status == 200) {
+                        if (survey.IsArchived === false) this.surveys = this.removeElement(survey.Id, this.surveys);
+                        //else this.archiveSurveys = this.removeElement(survey.Id, this.archiveSurveys);
+                    }
+                    loading.dismiss();
                 }
-                loading.dismiss();
-            }
-        );
+            );
     }
 
     changeSurveyName(survey, newName, slidingItem) {
@@ -455,21 +539,21 @@ export class HomePage {
         loading.present();
 
         this.surveyProvider.changeSurveyName(survey.Id, newName)
-        .subscribe(
-            data => {
-                console.log(data);
-                slidingItem.close();
-                loading.dismiss();
-            },
-            error => {
-                console.log(<any>error);
-                if (error.status == 200)  {
-                    survey.Name = newName;
+            .subscribe(
+                data => {
+                    console.log(data);
                     slidingItem.close();
+                    loading.dismiss();
+                },
+                error => {
+                    console.log(<any>error);
+                    if (error.status == 200) {
+                        survey.Name = newName;
+                        slidingItem.close();
+                    }
+                    loading.dismiss();
                 }
-                loading.dismiss();
-            }
-        );
+            );
     }
 
     activateSurvey(survey) {
@@ -480,20 +564,20 @@ export class HomePage {
         loading.present();
 
         this.surveyProvider.restoreSurvey(survey.Id)
-        .subscribe(
-            data => {
-                console.log(data);
-                loading.dismiss();
-            },
-            error => {
-                console.log(<any>error);
-                if (error.status == 200) {
-                    this.surveys.push(survey);
-                    this.archiveSurveys = this.removeElement(survey.Id, this.archiveSurveys);
+            .subscribe(
+                data => {
+                    console.log(data);
+                    loading.dismiss();
+                },
+                error => {
+                    console.log(<any>error);
+                    if (error.status == 200) {
+                        this.surveys.push(survey);
+                        this.archiveSurveys = this.removeElement(survey.Id, this.archiveSurveys);
+                    }
+                    loading.dismiss();
                 }
-                loading.dismiss();
-            }
-        );
+            );
     }
 
     // archiveSurvey(survey) {
@@ -521,7 +605,7 @@ export class HomePage {
     // }
 
     removeElement(surveyId, surveys) {
-        return surveys.filter(function(e) {
+        return surveys.filter(function (e) {
             return e.Id !== surveyId;
         });
     }
@@ -537,6 +621,5 @@ export class HomePage {
         return options[operation];
     }
 
-   
 
 }
