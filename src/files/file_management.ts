@@ -14,7 +14,6 @@ export default class FileManager {
     */
     static async directoryExists(dirName, path = "") {
         const file = new File();
-        console.log("here : ", file.dataDirectory + path + dirName);
         let dir_exists = false;
         await file.checkDir(file.dataDirectory + path, dirName)
             .then(_ => {
@@ -30,9 +29,12 @@ export default class FileManager {
 
 
     static async saveQuestions(filename, current_questions, path = "") {
+        console.log('guardando preguntas')
         try {
             let current_content = await this.readFile(path, filename);
             let new_content = JSON.parse(current_content);
+            console.log('el contenido')
+            console.log(new_content)
             new_content['questions'] = current_questions;
             return this.writeFile(filename, JSON.stringify(new_content), path);
         } catch (err) {
@@ -66,8 +68,9 @@ export default class FileManager {
     }
 
     static async getQuestions(surveyId) {
+        console.log(`obteniendo preguntas ${surveyId}`)
         let current_content = await this.readFile('Encuestas', surveyId);
-        return JSON.parse(current_content);
+        return JSON.parse(current_content).questions;
     }
 
     static async getSurveys() {
@@ -176,17 +179,14 @@ export default class FileManager {
         const file = new File();
         let dir_created = false;
         if (await this.directoryExists(dirName, path)) {
-            alert("Directory " + file.dataDirectory + path + dirName + " already exists");
             return true;
         } else {
             file.createDir(file.dataDirectory + path, dirName, false).then(
                 _ => {
-                    alert("Successfully created dir: " + dirName);
                     dir_created = true;
                 }
             ).catch(
                 err => {
-                    alert("Error at creating " + dirName);
                     console.log('Error (Directory Creation): ', err);
                     dir_created = false;
                 }

@@ -24,7 +24,6 @@ export class ChartComponent {
   @Input()
   set chartData(data: Array<Object>) {
       this.myChartData = data;
-      //console.log(this.myChartData);
       if (typeof this.myChartData != 'undefined') {
         this.setChartColors();
         this.getLabels();
@@ -35,11 +34,9 @@ export class ChartComponent {
   }
 
   constructor() {
-    //console.log('Hello ChartComponent Component');
   }
 
   ngAfterViewInit() {
-    //console.log('ngAfterViewInit CharComponent');    
   }
 
   drawChart(chartType) {

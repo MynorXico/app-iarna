@@ -14,6 +14,9 @@ import {Peticion} from '../../models/peticion.model';
 import {HttpClient} from '@angular/common/http';
 
 import FileManager from '../../files/file_management';
+import {Platform} from 'ionic-angular';
+import { min } from 'rxjs/operators';
+import { platformBrowser } from '@angular/platform-browser';
 
 @Component({
     selector: 'page-home',
@@ -37,30 +40,36 @@ export class HomePage {
     NoSurveyErrorMessage: string = "No se pudo obtener encuestas porfavor verifique la conexión a internet.";
     FailMessage: string;
     SuccessMessage: string;
+    key: boolean
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
                 public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper,
-                private db: Database, private http: HttpClient) {
-        //this.getActiveSurveys();
-        //this.getArchiveSurveys();
-        this.modo = true;
-        this.cambioModo();
-        this.getSurveys();
+                private db: Database, private http: HttpClient,public platform: Platform) {
 
-        this.respuestasPendientes = 0;
+        this.platform = platform;
 
-        // TO TEST API WRAPPER UNCOMMENT THIS CODE. 
-        /*
-        this.apiWrapper.api.surveys.get('getActive', { accessKey: true, ownerId: true }).subscribe(
-            data => {
-                console.log(data);
-            },
-            error => {
-                console.log(<any>error);
-            }
-        );
-        */
+        platform.ready().then(() => {
+           this.initCode() 
+        });
+    }
 
+    initCode(){
+        this.key = localStorage.getItem('newKey') != null;
+
+        this.modo = (localStorage.getItem('state') == null) 
+            ? true 
+            : (localStorage.getItem('state') == 'on') ? true : false
+
+        //Creando carpetas
+        FileManager.createDirectoryIfDoesntExist('Respuestas/')
+        FileManager.createDirectoryIfDoesntExist('Encuestas/')
+
+        this.textoModo = this.modo ? 'Online' : 'Offline';
+
+        if(this.key)
+            this.getSurveys();
+
+        this.respuestasPendientes = 0
     }
 
     ionViewWillEnter() {
@@ -69,6 +78,7 @@ export class HomePage {
 
     cambioModo() {
         this.textoModo = this.modo ? 'Online' : 'Offline';
+        localStorage.setItem('state',this.modo ? 'on' : 'off')
     }
 
     obtenerDatosRespuestas() {
@@ -79,7 +89,6 @@ export class HomePage {
         ).catch((error) => {
             alert("Error: " + JSON.stringify(error));
         })
-
     }
 
     /*
@@ -120,7 +129,7 @@ export class HomePage {
 
                         // Guardar estas encuestas
                         console.log("Got surveys: ", this.surveys);
-                        await FileManager.createDirectoryIfDoesntExist('Encuestas');
+
                         this.surveys.forEach((value, index) => {
                             let survey_id = value.Id;
                             FileManager.writeFile(survey_id, JSON.stringify(value), 'Encuestas');
@@ -134,7 +143,7 @@ export class HomePage {
                         if ((error.message == "Failed to get surveys.") || (error.message == "Http failure response for (unknown url): 0 Unknown Error")) {
                             // this.noSurveys = true;
                             this.SuccessStatus = false;
-                            this.FailMessage = this.NoSurveyErrorMessage;
+                            this.FailMessage = `${this.NoSurveyErrorMessage} de manera online`
                             this.FailStatus = true;
                             setTimeout(() => {
                                 this.SuccessStatus = false;
@@ -149,12 +158,12 @@ export class HomePage {
                     this.surveys = SurveyModel.fromJSONArray(surveysFromFileSystem);
                 } else {
                     // this.noSurveys = true;
-                    this.SuccessStatus = false;
-                    this.FailMessage = this.NoSurveyErrorMessage;
+                    this.SuccessStatus = false
+                    this.FailMessage = `${this.NoSurveyErrorMessage} de manera offline`
                     this.FailStatus = true;
                     setTimeout(() => {
-                        this.SuccessStatus = false;
-                        this.FailStatus = false;
+                        this.SuccessStatus = false
+                        this.FailStatus = false
                     }, 5000);
                 }
                 loading.dismiss();
@@ -169,11 +178,11 @@ export class HomePage {
             content: "Descargando encuestas..."
         });
         loading.present();
-        console.log(surveys);
+
         surveys.forEach(survey => {
             this.http.get('https://dxsurveyapi.azurewebsites.net/api/Survey/getSurvey?surveyId=' + survey.Id).subscribe((response) => {
                 console.log('Questions', JSON.stringify(response));
-                this.getSurveys();
+
                 FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas').then((res) => {
                     if (res === true && this.SuccessStatus === false) {
                         this.FailStatus = false;
@@ -189,9 +198,11 @@ export class HomePage {
                         this.FailStatus = false;
                     }, 5000);
                 });
-                ;
             });
         });
+
+
+
         loading.dismiss();
     }
 
@@ -460,7 +471,6 @@ export class HomePage {
                         //this.surveyProvider.NewKey=data.name;
                         localStorage.setItem("newKey", data.name);
                         location.reload();
-
                     }
                 }
             ]
@@ -471,7 +481,11 @@ export class HomePage {
     showPrompt1(survey, slidingItem: ItemSliding) {
         let prompt = this.alertCtrl.create({
             title: '<div align="center"> Creditos </div>',
-            message: "<b> Edgar Pimentel </b> <br>" + "<b> Jose del Pozo </b> <br>" + "<b> Alberto Estrada </b> <br>" + "<b> Luis Pedro Gonzalez </b> <br>" + "<b> Oscar Gomez </b> <br>" + "<b> Miguel Rojas </b> <br>",
+            message: "<b> Bryan Macario </b> <br>" 
+            + "<b> Derek Menendez </b> <br>" 
+            + "<b> Harry Caballeros </b> <br>" 
+            + "<b> Mynor Xico </b> <br>" 
+            + "<b> Sebastian Bonilla </b> <br>",
 
             buttons: [
 
@@ -619,6 +633,10 @@ export class HomePage {
 
         }
         return options[operation];
+    }
+
+    showHelp(){
+
     }
 
 

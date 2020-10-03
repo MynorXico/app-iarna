@@ -22,7 +22,6 @@ export class SurveyComponent {
     _mode: any;
 
     @Input() set survey(surveyAndMode) {
-        console.log('Survey',surveyAndMode);
         Survey.Survey.cssType = "bootstrap";
         Survey.defaultBootstrapCss.navigationButton = "btn btn-green";
 
@@ -31,15 +30,12 @@ export class SurveyComponent {
         
         let surveyModel
         if(surveyAndMode['mode']){
+            alert('entre en el online papaito')
             surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
             this.renderSurvey(surveyModel);
         }else{
-            // FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
-            //     surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
-            //     this.renderSurvey(surveyModel);
-            // });
-            FileManager.getQuestions(this._survey.Id).then((surveyFromStorage) => {
-                surveyModel = new Survey.ReactSurveyModel({surveyId: this._survey.Id});
+            FileManager.getQuestions(this._survey.Id).then( surveyFromStorage => {
+                surveyModel = new Survey.ReactSurveyModel(surveyFromStorage);
                 this.renderSurvey(surveyModel);
             });
         }
@@ -75,7 +71,8 @@ export class SurveyComponent {
             let content = {};
             content['respuestas'] = respuestas;
             content['postId'] = id_encuesta_respondida;
-            await FileManager.createDirectoryIfDoesntExist('Respuestas');
+
+            
             await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/');
 
             let responseFileName:String = await FileManager.getFileName('Respuesta_1','Respuestas/'+id_encuesta+'/')

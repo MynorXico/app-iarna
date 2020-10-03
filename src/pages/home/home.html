@@ -14,25 +14,28 @@
             <!-- <button ion-fab mini color="danger" (click)="presentAlert({operation: 'create'})"><ion-icon name="add"></ion-icon></button> -->
             <!-- <button ion-fab mini color="danger" ><ion-icon name="add"><ion-icon name="build"></ion-icon></button> -->
 
-            <button ion-fab mini color="danger" (click)="showPrompt()">
+            <button ion-fab mini class="button-settings" (click)="showPrompt()">
                 <ion-icon name="build"></ion-icon>
             </button>
-            <button ion-fab mini color="danger" (click)="showPrompt1()">
+            <button ion-fab mini class="button-creators" (click)="showPrompt1()">
                 <ion-icon name="people"></ion-icon>
             </button>
             <button ion-fab mini color="danger" (click)="showPromptTrash()">
                 <ion-icon name="trash"></ion-icon>
             </button>
+            <button ion-fab mini class="button-help" (click)="showHelp()">
+                <ion-icon name="help"></ion-icon>
+            </button>
 
         </ion-fab-list>
     </ion-fab>
     <div class="contenedor-encabezado">
-        <div class="encabezado" top left>
+        <div *ngIf="key" class="encabezado" top left>
             <div class="acciones">
-                <button *ngIf="modo" (click)="downloadSurveys(surveys)" ion-button color="danger">
+                <button *ngIf="modo" (click)="downloadSurveys(surveys)" ion-button class="button-download">
                     <ion-icon name="cloud-download"></ion-icon>
                 </button>
-                <button *ngIf="modo" (click)="uploadSurveys()" ion-button color="danger">
+                <button *ngIf="modo" (click)="uploadSurveys()" ion-button color="success">
                     <ion-icon name="cloud-upload"></ion-icon>
                 </button>
                 <div *ngIf="respuestasPendientes > 0 && modo" class="numberCircle">{{ respuestasPendientes }}</div>
