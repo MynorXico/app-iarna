@@ -1,5 +1,5 @@
-import {Component} from '@angular/core';
-import {NavController, LoadingController, AlertController, ItemSliding} from 'ionic-angular';
+import {Component, Sanitizer} from '@angular/core';
+import {NavController, LoadingController, AlertController, ItemSliding, ToastController} from 'ionic-angular';
 
 import {SurveyProvider} from '../../providers/survey/survey';
 import {SurveyDetailsPage} from '../survey-details/survey-details';
@@ -16,7 +16,7 @@ import {HttpClient} from '@angular/common/http';
 import FileManager from '../../files/file_management';
 import {Platform} from 'ionic-angular';
 import { min } from 'rxjs/operators';
-import { platformBrowser } from '@angular/platform-browser';
+import { platformBrowser, DomSanitizer } from '@angular/platform-browser';
 
 @Component({
     selector: 'page-home',
@@ -44,7 +44,9 @@ export class HomePage {
 
     constructor(public navCtrl: NavController, public surveyProvider: SurveyProvider,
                 public loadingCtrl: LoadingController, public alertCtrl: AlertController, public apiWrapper: ApiWrapper,
-                private db: Database, private http: HttpClient,public platform: Platform) {
+                private db: Database, private http: HttpClient,public platform: Platform, public toastCtrl: ToastController,
+                public _sanitizer: DomSanitizer
+                ) {
 
         this.platform = platform;
 
@@ -636,7 +638,72 @@ export class HomePage {
     }
 
     showHelp(){
+        let content = `
+                <style>
+                    .alert-md .alert-wrapper {
+                        max-width: 800px
+                    }
+                    .help-item {
+                        padding: 10px 0 10px 0
+                    }
+                </style>
+                <div class='help-item'>
+                    <div style="text-align: center">
+                        <button  style=" background-color: #72bfdd;" class="button-download button button-md button-default button-default-md" ion-button="">
+                            <span class="button-inner">
+                                <ion-icon name="cloud-download" role="img" class="icon icon-md ion-md-cloud-download" aria-label="cloud download" ng-reflect-name="cloud-download"></ion-icon>
+                            </span>
+                            <div class="button-effect" style="transform: translate3d(-19px, -17px, 0px) scale(1); height: 70px; width: 70px; opacity: 0; transition: transform 279ms ease 0s, opacity 195ms ease 84ms;"></div>
+                        </button>
+                    </div>
+                    <div style="text-align: center">
+                        Se utiliza para descargar el contenido de <b> SurveyJS. </b>
+                    </div>
+                </div>
+                <div class='help-item'>
+                    <div style="text-align: center">
+                        <button class="button-upload button button-md button-default button-default-md" ion-button="">
+                            <span class="button-inner">
+                                <ion-icon name="cloud-upload" role="img" class="icon icon-md ion-md-cloud-upload" aria-label="cloud upload" ng-reflect-name="cloud-upload"></ion-icon>
+                            </span>
+                            <div class="button-effect" style="transform: translate3d(-19px, -17px, 0px) scale(1); height: 70px; width: 70px; opacity: 0; transition: transform 279ms ease 0s, opacity 195ms ease 84ms;"></div>
+                        </button>
+                    </div>
+                    <div style="text-align: center">
+                        Se utiliza para enviar las encuestas que se encuentran en el teléfono hacia internet. <b>Antes de presionar este botón debe asegurarse que se cuenta con una conexión estable a internet  </b>.
+                    </div>
+                </div>
+                <div class='help-item'>
+                    <div style="text-align: center">
+                        <button style="color: black; background-color: #72bfdd; border-radius: 100%" class="button-upload button button-md button-default button-default-md" ion-button="">
+                            <span class="button-inner">
+                                <ion-icon name="build" role="img" class="icon icon-md ion-md-build" aria-label="build" ng-reflect-name="build"></ion-icon>
+                            </span>
+                            <div class="button-effect"
+                                style="transform: translate3d(-16px, -16px, 0px) scale(1); height: 65px; width: 65px; opacity: 0; transition: transform 277ms ease 0s, opacity 194ms ease 83ms;">
+                            </div>                        
+                        </button>
+                    </div>
+                    <div style="text-align: center">
+                        Al presionar este botón, se solicitará la clave de acceso de la cuenta de SurveyJS.
+                    </div>
+                </div>        
+        `;
+        let prompt = this.alertCtrl.create({
 
+            
+            title: '<div align="center"> Ayuda </div>',
+            message: <any> this._sanitizer.bypassSecurityTrustHtml(content),
+
+            buttons: [
+
+                {
+                    text: 'Aceptar',
+
+                }
+            ]
+        });
+        prompt.present();
     }
 
 
