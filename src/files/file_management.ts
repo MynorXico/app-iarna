@@ -1,4 +1,4 @@
-import {File} from "@ionic-native/file";
+import {DirectoryEntry, File} from "@ionic-native/file";
 
 export default class FileManager {
 
@@ -193,6 +193,30 @@ export default class FileManager {
             );
         }
         return dir_created;
+    }
+
+    static async createAnswersDirectoryIfDoesntExists(dirName, path=""):Promise<boolean>{
+        const file = new File();
+        let flag = false;
+        
+        await file.checkDir(file.dataDirectory + path, dirName)
+        .then(() => {
+            flag = true;
+        })
+        .catch(async () => {
+            console.log("Directory not exists: ", file.dataDirectory + path + dirName);
+            await file.createDir(file.dataDirectory + path, dirName, false)
+            .then((response)=>{
+                console.log("Directory created successfully", JSON.stringify(response))
+                flag = true;
+            })
+            .catch((error)=>{
+                console.log("Error: ", JSON.stringify(error))
+                flag = false;
+            })
+        })
+
+        return flag;
     }
 
     /*

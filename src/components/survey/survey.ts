@@ -71,22 +71,29 @@ export class SurveyComponent {
             let content = {};
             content['respuestas'] = respuestas;
             content['postId'] = id_encuesta_respondida;
-
             
-            await FileManager.createDirectoryIfDoesntExist(id_encuesta, 'Respuestas/');
-
-            let responseFileName:String = await FileManager.getFileName('Respuesta_1','Respuestas/'+id_encuesta+'/')
-
-            await FileManager.writeFile(responseFileName, JSON.stringify(content), 'Respuestas/'+id_encuesta)
-            .then(()=> {
-                /* Insertar el archivo en BDD */
-                const item:Peticion = {id: 1, estado: 0, path: 'Respuestas/'+id_encuesta+'/'+responseFileName};
-                this.db.insertRow(item).then (()=>{
-                    console.log("Saved on database");
-                });      
+            await FileManager.createAnswersDirectoryIfDoesntExists(id_encuesta, 'Respuestas/')
+            .then ((res)=> {
+                if(res){
+                    FileManager.getFileName('Respuesta_1','Respuestas/'+id_encuesta+'/')
+                    .then ((filename)=>{
+                        FileManager.writeFile(filename, JSON.stringify(content), 'Respuestas/'+id_encuesta)
+                        .then(()=> {
+                            /* Insertar el archivo en BDD */
+                            const item:Peticion = {id: 1, estado: 0, path: 'Respuestas/'+id_encuesta+'/'+filename};
+                            this.db.insertRow(item).then (()=>{
+                                console.log("Saved on database");
+                            });      
+                        })
+        
+                        console.log("Sending data: ", survey.valuesHash)
+                    })
+                }
+                else{
+                    alert("Ocurrio un error y no se pudo almacenar la respuesta.");
+                }
+                
             })
-
-            console.log("Sending data: ", survey.valuesHash)
         }
     };
 

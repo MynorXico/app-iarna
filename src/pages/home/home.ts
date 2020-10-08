@@ -49,8 +49,9 @@ export class HomePage {
         this.platform = platform;
 
         platform.ready().then(() => {
-           this.initCode() 
+           this.initCode();
         });
+
     }
 
     initCode(){
@@ -69,11 +70,9 @@ export class HomePage {
         if(this.key)
             this.getSurveys();
 
-        this.respuestasPendientes = 0
-    }
-
-    ionViewWillEnter() {
-        this.obtenerDatosRespuestas();
+        this.respuestasPendientes = (localStorage.getItem('responses') == null)
+            ? 0
+            : Number.parseInt(localStorage.getItem('responses'));
     }
 
     cambioModo() {
@@ -81,10 +80,15 @@ export class HomePage {
         localStorage.setItem('state',this.modo ? 'on' : 'off')
     }
 
+    ionViewWillEnter(){
+        this.obtenerDatosRespuestas();
+    }
+
     obtenerDatosRespuestas() {
         this.db.getRows().then(
             (data) => {
                 this.respuestasPendientes = data.rows.length;
+                localStorage.setItem('responses', this.respuestasPendientes.toString());
             }
         ).catch((error) => {
             alert("Error: " + JSON.stringify(error));
@@ -206,15 +210,15 @@ export class HomePage {
         loading.dismiss();
     }
 
-    uploadSurveys() {
+    async uploadSurveys() {
         let loading = this.loadingCtrl.create({
             content: "Subiendo respuestas..."
         });
         loading.present();
 
-        this.UpdateDBFiles()
-            .then(() => {
-                this.db.deleteRows()
+        await this.UpdateDBFiles()
+            .then(async () => {
+                await this.db.deleteRows()
                     .then(() => {
                         loading.dismiss();
                         this.db.getRows().then(
@@ -226,9 +230,8 @@ export class HomePage {
                             }
                         ).catch((error) => {
                             alert("Error: " + JSON.stringify(error));
+                            loading.dismiss();
                         })
-
-
                     })
                     .catch(() => {
                         loading.dismiss();
@@ -637,6 +640,10 @@ export class HomePage {
 
     showHelp(){
 
+    }
+
+    ngOnDestroy(){
+        this.obtenerDatosRespuestas();
     }
 
 
