@@ -20,6 +20,7 @@ export class SurveyModel {
     UseCookies: boolean;
     UserId: string;
     Image: string;
+    ImageOffline: string;
 
 
     // Copy constructor.
@@ -38,6 +39,7 @@ export class SurveyModel {
         this.UseCookies = obj['UseCookies'];
         this.UserId = obj['UserId'];
         this.Image = obj['Image'] || defaultImages[Math.floor(Math.random() * defaultImages.length)];
+        this.ImageOffline = "assets/offlinesurveys-mod.png";
     }
 
     // New static method.

@@ -183,34 +183,42 @@ export class HomePage {
         let loading = this.loadingCtrl.create({
             content: "Descargando encuestas..."
         });
-        loading.present();
-
-        surveys.forEach(survey => {
-            this.http.get('https://dxsurveyapi.azurewebsites.net/api/Survey/getSurvey?surveyId=' + survey.Id).subscribe((response) => {
-                console.log('Questions', JSON.stringify(response));
-
-                FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas').then((res) => {
-                    if (res === true && this.SuccessStatus === false) {
-                        this.FailStatus = false;
-                        this.SuccessMessage = this.SurveyDownloadSuccessMessage;
-                        this.SuccessStatus = true;
-                    } else if (res === false && this.FailStatus === false) {
-                        this.SuccessStatus = false;
-                        this.FailMessage = this.SurveyDownloadFailMessage;
-                        this.FailStatus = true;
-                    }
-                    setTimeout(() => {
-                        this.SuccessStatus = false;
-                        this.FailStatus = false;
-                    }, 5000);
+        loading.present().then(() => {
+            surveys.forEach(survey => {
+                this.http.get('https://dxsurveyapi.azurewebsites.net/api/Survey/getSurvey?surveyId=' + survey.Id).subscribe((response) => {
+                    console.log('Questions', JSON.stringify(response));
+    
+                    FileManager.saveQuestions(survey.Id, JSON.stringify(response), 'Encuestas').then((res) => {
+                        if (res === true && this.SuccessStatus === false) {
+                            this.FailStatus = false;
+                            this.SuccessMessage = this.SurveyDownloadSuccessMessage;
+                            this.SuccessStatus = true;
+                        } else if (res === false && this.FailStatus === false) {
+                            this.SuccessStatus = false;
+                            this.FailMessage = this.SurveyDownloadFailMessage;
+                            this.FailStatus = true;
+                        }
+                        setTimeout(() => {
+                            this.SuccessStatus = false;
+                            this.FailStatus = false;
+                        }, 5000);
+                    });
                 });
+                this.sleep(500);
             });
+    
+            loading.dismiss();
         });
-
-
-
-        loading.dismiss();
     }
+
+    sleep(milliseconds) {
+        const date = Date.now();
+        let currentDate = null;
+        do {
+            currentDate = Date.now();
+        } while (currentDate - date < milliseconds);
+    }
+      
 
     async uploadSurveys() {
         let loading = this.loadingCtrl.create({
@@ -327,7 +335,7 @@ export class HomePage {
                                                             .catch((e) => console.log('Error ', JSON.stringify(e)));
                                                     }
                                                 );
-
+                                                this.sleep(500);
                                             } else {
                                                 this.db.deleteRow(element.id)
                                                     .then(() => {
