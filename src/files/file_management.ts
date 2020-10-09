@@ -256,12 +256,18 @@ export default class FileManager {
         return result.success;
     }
 
-    static async deleteSurveys() {
+    /*
+       Borra unicamente las encuestas. Se utiliza en el botón borrar. 
+    */
+
+    static async deleteSurveysAnswers() {
         var EncuestasDeleted = false;
         if (this.directoryExists('Encuestas')) {
             const fileObj = new File();
             try {
+        
                 let filesEncuestas = await fileObj.listDir(fileObj.dataDirectory, 'Encuestas');
+                
                 for (const file of filesEncuestas) {
                     if (file.isFile) {
                         fileObj.removeFile(fileObj.dataDirectory + 'Encuestas/', file.name);
@@ -269,31 +275,39 @@ export default class FileManager {
                 }
                 ;
                 EncuestasDeleted = true;
+                return true;
             } catch (err) {
                 console.log("delete survey files error Encuestas : ", err);
+                return false;
             }
         }
-        if (this.directoryExists('Respuestas')) {
+        return false;
+    }
+
+    static async deleteSurveysAnswersFileEmpty() {
+        var EncuestasDeleted = false;
+        var content = []; 
+        if (this.directoryExists('Encuestas')) {
             const fileObj = new File();
             try {
-                let filesRespuestas = await fileObj.listDir(fileObj.dataDirectory, 'Respuestas');
-                for (const file of filesRespuestas) {
+                let filesEncuestas = await fileObj.listDir(fileObj.dataDirectory, 'Encuestas');
+                
+                for (const file of filesEncuestas) {
                     if (file.isFile) {
-                        fileObj.removeFile(fileObj.dataDirectory + 'Respuestas/', file.name);
+                        console.log(" NOMBRE DIR ANTES DE BORRAR" +  file.name)
+                        content = await fileObj.listDir(fileObj.dataDirectory, 'Encuestas/'+file.name);;
+                        if(content.length == 0){
+                            fileObj.removeFile(fileObj.dataDirectory + 'Encuestas/', file.name);
+                        }
                     }
                 }
                 ;
+                EncuestasDeleted = true;
                 return true;
             } catch (err) {
-                console.log("delete survey files error Respuestas : ", err);
-                if (EncuestasDeleted == true) {
-                    return true;
-                } else {
-                    return false;
-                }
+                console.log("delete survey files error Encuestas : ", err);
+                return false;
             }
-        } else if (EncuestasDeleted == true) {
-            return true;
         }
         return false;
     }

@@ -227,7 +227,12 @@ export class HomePage {
                             (data) => {
                                 let pendientes = data.rows.length;
                                 if (data.rows.length > 0) {
-                                    alert("Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.")
+                                    //alert("Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.")
+                                    let alertMessage = "Quedaron pendientes " + pendientes + " respuestas de sincronizar. Espere unos minutos y vuelva a sincronizar respuestas.";
+                                    this.showWrongMessage(alertMessage);
+                                }else{
+                                    let alertMessage = "Se subieron correctamente las respuestas";
+                                    this.showOkMessage(alertMessage);
                                 }
                             }
                         ).catch((error) => {
@@ -414,10 +419,48 @@ export class HomePage {
         alert.present();
     }
 
+    showWrongMessage(message: string){
+        this.SuccessStatus = false;
+        this.FailMessage = message;
+        this.FailStatus = true;
+        setTimeout(() => {
+            this.SuccessStatus = false;
+            this.FailStatus = false;
+        }, 5000);
+    }  
+
+    showOkMessage(message: string){
+        this.FailStatus = false;
+        this.SuccessMessage = message;
+        this.SuccessStatus = true;
+        setTimeout(() => {
+            this.SuccessStatus = false;
+            this.FailStatus = false;
+        }, 5000);
+    }
+
+    showPromptDelteAnswersSend(){
+        FileManager.deleteSurveysAnswersFileEmpty().then((res)=>{
+            if (res === true) {
+                this.FailStatus = false;
+                this.SuccessMessage = "Se borraron correctamente las respuestas";
+                this.SuccessStatus = true;
+            } else {
+                this.SuccessStatus = false;
+                this.FailMessage = "No se borraron correctamente las respuestas, intenta nuevamente";
+                this.FailStatus = true;
+            }
+            setTimeout(() => {
+                this.SuccessStatus = false;
+                this.FailStatus = false;
+            }, 5000);
+        });
+    }
+
     showPromptTrash(survey, slidingItem: ItemSliding) {
         let prompt = this.alertCtrl.create({
-            title: 'Limpiar archivos',
-            message: "¿Desea limpiar el sistema de archivos?",
+            title: 'Limpiar archivos de respuestas',
+            message: "¿Esta seguro que deseas eliminar las respuestas? Puede que estas no hayan sido sincronizadas",
             buttons: [
                 {
                     text: 'Cancelar',
@@ -428,14 +471,14 @@ export class HomePage {
                 {
                     text: 'Aceptar',
                     handler: data => {
-                        FileManager.deleteSurveys().then((res) => {
+                        FileManager.deleteSurveysAnswers().then((res) => {
                             if (res === true) {
                                 this.FailStatus = false;
-                                this.SuccessMessage = "Se borraron correctamente los archivos";
+                                this.SuccessMessage = "Se borraron correctamente las respuestas";
                                 this.SuccessStatus = true;
                             } else {
                                 this.SuccessStatus = false;
-                                this.FailMessage = "No se borraron correctamente los archivos";
+                                this.FailMessage = "No se borraron correctamente las respuestas, intenta nuevamente";
                                 this.FailStatus = true;
                             }
                             setTimeout(() => {
