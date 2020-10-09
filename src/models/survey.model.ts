@@ -1,8 +1,8 @@
 const defaultImages = [
-    "https://flexsurveys.com/wp-content/uploads/FlexSurveysEmployeeEngagementSurvey-Trans.png",
-    "https://static.e-encuesta.com/wp-content/uploads/satisfaccion-cliente-v6.png",
-    "http://www.redcresearch.ie/wp-content/uploads/2015/12/14.png",
-    "http://www.redcresearch.ie/wp-content/uploads/2015/12/30.png"
+    "assets/img1.png",
+    "assets/img2.png",
+    "assets/img3.png",
+    "assets/img4.png"
 ];
 
 export class SurveyModel {
