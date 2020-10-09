@@ -58,7 +58,8 @@
         <ion-item-sliding *ngFor="let survey of surveys; let i = index" #slidingItem>
             <ion-item tappable (click)="selectedSurvey(survey)">
                 <ion-thumbnail item-start>
-                    <img [src]="survey.Image">
+                    <img [src]="survey.Image" *ngIf="modo">
+                    <img [src]="survey.ImageOffline" *ngIf="!modo">
                 </ion-thumbnail>
                 <h2>{{survey.Name}}</h2>
                 <p>

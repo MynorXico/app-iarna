@@ -1,8 +1,8 @@
 const defaultImages = [
-    "https://flexsurveys.com/wp-content/uploads/FlexSurveysEmployeeEngagementSurvey-Trans.png",
-    "https://static.e-encuesta.com/wp-content/uploads/satisfaccion-cliente-v6.png",
-    "http://www.redcresearch.ie/wp-content/uploads/2015/12/14.png",
-    "http://www.redcresearch.ie/wp-content/uploads/2015/12/30.png"
+    "assets/img1.png",
+    "assets/img2.png",
+    "assets/img3.png",
+    "assets/img4.png"
 ];
 
 export class SurveyModel {
@@ -20,6 +20,7 @@ export class SurveyModel {
     UseCookies: boolean;
     UserId: string;
     Image: string;
+    ImageOffline: string;
 
 
     // Copy constructor.
@@ -38,6 +39,7 @@ export class SurveyModel {
         this.UseCookies = obj['UseCookies'];
         this.UserId = obj['UserId'];
         this.Image = obj['Image'] || defaultImages[Math.floor(Math.random() * defaultImages.length)];
+        this.ImageOffline = "assets/offlinesurveys-mod.png";
     }
 
     // New static method.
