@@ -30,7 +30,6 @@ export class SurveyComponent {
         
         let surveyModel
         if(surveyAndMode['mode']){
-            alert('entre en el online papaito')
             surveyModel = new Survey.ReactSurveyModel({ surveyId: this._survey.Id });
             this.renderSurvey(surveyModel);
         }else{
